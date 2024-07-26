@@ -1,1 +1,1 @@
-Circuitos digitales discretos: Implementación de un decodificador de 2 a 4 con salidas activas en bajo y un codificador de 4 a 2.
+Circuitos digitales discretos: Decodificador de 2 entradas a 4 salidas activas en bajo y codificador de 4 entradas a 2 salidas.
