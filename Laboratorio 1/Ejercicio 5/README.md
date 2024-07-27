@@ -1,1 +1,0 @@
-Unidad aritmética lógica (ALU).

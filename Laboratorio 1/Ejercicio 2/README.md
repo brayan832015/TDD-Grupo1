@@ -1,1 +1,0 @@
-Switches, botones y LEDs
