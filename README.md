@@ -10,4 +10,3 @@
   - **Carpetas de laboratorios:** Cada laboratorio tiene su propia carpeta principal.
   - **Ejercicios:** Dentro de cada carpeta de laboratorio, se encuentran subcarpetas dedicadas a cada ejercicio.
   - **Cuestionarios previos:** Dentro de cada carpeta de laboratorio, se encuentra su respectivo cuestionario previo.
-  prueba
