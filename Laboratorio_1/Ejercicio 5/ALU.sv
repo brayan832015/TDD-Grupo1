@@ -4,14 +4,15 @@ module ALU #(parameter n = 4) (
     input logic ALUFlagIn,
     input logic [3:0] ALUControl,
     output logic [n-1:0] ALUResult,
-    output logic [1:0] ALUFlags
+    output logic [1:0] ALUFlags //bit 0 para bandera "C" y bit 1 para bandera "Z" (Cero)
 );
 
 typedef enum logic[3:0] {op_and, op_or, suma, incremento_1, decremento_1, op_not, resta, op_xor, corrimiento_izq, corrimiento_der} operations;
-logic [n-1:0] sum_result;
-logic [n-1:0] diff_result;
 
-    always @(*) begin
+
+logic [n:0] shift_result;
+
+    always_comb begin
         case (ALUControl)
             op_and: 
                 ALUResult = ALUA & ALUB;
@@ -20,8 +21,7 @@ logic [n-1:0] diff_result;
                 ALUResult = ALUA | ALUB;
             
             suma: begin
-                sum_result = ALUA + ALUB + ALUFlagIn;
-                ALUResult = sum_result[n-1:0];
+                ALUResult = ALUA + ALUB + ALUFlagIn;
             end
            
             incremento_1: 
@@ -44,17 +44,29 @@ logic [n-1:0] diff_result;
             end
             
             resta: begin
-                diff_result = ALUA - ALUB - ALUFlagIn;
-                ALUResult = diff_result[n-1:0];
+                ALUResult = ALUA - ALUB - ALUFlagIn;
             end
             
             op_xor: 
                 ALUResult = ALUA ^ ALUB;
                 
-            //corrimiento_izq: 
-                
-
-            //corrimiento_der: 
+            corrimiento_izq: begin
+                shift_result = ALUA << ALUB;
+                ALUResult = shift_result[n-1:0];
+                if (shift_result[n])
+                    ALUFlags=2'b01;
+                else
+                    ALUFlags=2'b00;
+            end            
+            
+            corrimiento_der: begin
+                shift_result = ALUA >> ALUB;
+                ALUResult = shift_result[n-1:0];
+                if (shift_result[n])
+                    ALUFlags=2'b01;
+                else
+                    ALUFlags=2'b00;
+            end 
                 
            
             default: begin
