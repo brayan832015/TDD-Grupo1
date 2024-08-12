@@ -9,80 +9,80 @@ module ALU #(parameter n = 4) (
 
 typedef enum logic[3:0] {op_and, op_or, suma, incremento_1, decremento_1, op_not, resta, op_xor, corrimiento_izq, corrimiento_der} operations;
 
-
 logic [n-1:0] fill_pattern;
-logic [n+1:0] shift_out;
+logic carry_bit;
 
     always_comb begin
-        
         fill_pattern = ALUFlagIn ? {n{1'b1}} : {n{1'b0}};
         
         case (ALUControl)
             op_and: begin
                 ALUResult = ALUA & ALUB;
-                ALUFlags[1] = (ALUResult == 0) ? 1 : 0;
             end
             
             op_or: begin
                 ALUResult = ALUA | ALUB;
-                ALUFlags[1] = (ALUResult == 0) ? 1 : 0;
             end
             
             suma: begin
                 ALUResult = ALUA + ALUB + ALUFlagIn;
-                ALUFlags[1] = (ALUResult == 0) ? 1 : 0;
             end
            
             incremento_1: begin
                 ALUResult = ALUFlagIn ? (ALUB + 1) : (ALUA + 1);
-                ALUFlags[1] = (ALUResult == 0) ? 1 : 0;
             end
 
             decremento_1: begin
                 ALUResult = ALUFlagIn ? (ALUB - 1) : (ALUA - 1);
-                ALUFlags[1] = (ALUResult == 0) ? 1 : 0;
             end
             
             op_not: begin
                 ALUResult = ALUFlagIn ? ~ALUB : ~ALUA;
-                ALUFlags[1] = (ALUResult == 0) ? 1 : 0;
             end
             
             resta: begin
                 ALUResult = ALUA - ALUB - ALUFlagIn;
-                ALUFlags[1] = (ALUResult == 0) ? 1 : 0;
             end
             
             op_xor: begin
                 ALUResult = ALUA ^ ALUB;
-                ALUFlags[1] = (ALUResult == 0) ? 1 : 0;
             end
             
             corrimiento_izq: begin
-                shift_out [n:1] = ALUA << ALUB;
-                ALUFlags[0] = shift_out[n+1];
-                if (ALUB >= n)
+                if (ALUB >= n) begin
                     ALUResult = fill_pattern;
-                else
+                    if (ALUB == n)
+                        carry_bit = ALUA[0]; 
+                    else
+                        carry_bit = ALUFlagIn;
+                end
+                else begin
                     ALUResult = (ALUA << ALUB) | (fill_pattern >> (n - ALUB));
-                ALUFlags[1] = (ALUResult == 0) ? 1 : 0;
+                    carry_bit = ALUA[n-ALUB];
+                end
+                ALUFlags[0] = carry_bit;
             end            
             
             corrimiento_der: begin
-                shift_out [n:1] = ALUA >> ALUB;
-                ALUFlags[0] = shift_out[0];
-                if (ALUB >= n)
+                if (ALUB >= n) begin
                     ALUResult = fill_pattern;
-                else
+                    if (ALUB == n)
+                        carry_bit = ALUA[n-1]; 
+                    else
+                        carry_bit = ALUFlagIn;
+                end
+                else begin
                     ALUResult = (ALUA >> ALUB) | (fill_pattern << (n - ALUB));
-                ALUFlags[1] = (ALUResult == 0) ? 1 : 0;
+                    carry_bit = ALUA[ALUB-1];
+                end
+                ALUFlags[0] = carry_bit;
             end 
-                
-           
+              
             default: begin
                 ALUResult = 0;
                 ALUFlags = 2'b10;
             end
         endcase
+        ALUFlags[1] = (ALUResult == 0) ? 1 : 0; 
     end
 endmodule
