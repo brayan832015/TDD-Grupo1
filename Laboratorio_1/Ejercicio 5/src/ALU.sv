@@ -1,4 +1,4 @@
-module ALU #(parameter n = 4) (
+module ALU_parametrizable #(parameter n = 4) (
     input logic [n-1:0] ALUA,
     input logic [n-1:0] ALUB,
     input logic ALUFlagIn,
@@ -14,7 +14,10 @@ logic carry_bit;
 
     always_comb begin
         fill_pattern = ALUFlagIn ? {n{1'b1}} : {n{1'b0}};
-        
+        carry_bit = 0;
+        ALUFlags = 2'b10;
+        ALUResult = 0;
+
         case (ALUControl)
             op_and: begin
                 ALUResult = ALUA & ALUB;
@@ -56,11 +59,14 @@ logic carry_bit;
                     else
                         carry_bit = ALUFlagIn;
                 end
+                else if (ALUB == 0) begin
+                    carry_bit = 0;
+                    ALUResult = ALUA;
+                end
                 else begin
                     ALUResult = (ALUA << ALUB) | (fill_pattern >> (n - ALUB));
                     carry_bit = ALUA[n-ALUB];
                 end
-                ALUFlags[0] = carry_bit;
             end            
             
             corrimiento_der: begin
@@ -71,11 +77,14 @@ logic carry_bit;
                     else
                         carry_bit = ALUFlagIn;
                 end
+                else if (ALUB == 0) begin
+                    carry_bit = 0;
+                    ALUResult = ALUA;
+                end
                 else begin
                     ALUResult = (ALUA >> ALUB) | (fill_pattern << (n - ALUB));
                     carry_bit = ALUA[ALUB-1];
                 end
-                ALUFlags[0] = carry_bit;
             end 
               
             default: begin
@@ -84,5 +93,6 @@ logic carry_bit;
             end
         endcase
         ALUFlags[1] = (ALUResult == 0) ? 1 : 0; 
+        ALUFlags[0] = (ALUControl == 8 | ALUControl == 9) ? carry_bit : 0; 
     end
 endmodule

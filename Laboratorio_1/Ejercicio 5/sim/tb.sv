@@ -7,7 +7,7 @@ module tb();
     logic [n-1:0] ALUResult;
     logic [1:0] ALUFlags;
 
-    ALU #(.n(n)) dut (.ALUA(ALUA), .ALUB(ALUB), .ALUFlagIn(ALUFlagIn), .ALUControl(ALUControl), .ALUResult(ALUResult), .ALUFlags(ALUFlags));
+    ALU_parametrizable #(.n(n)) dut (.ALUA(ALUA), .ALUB(ALUB), .ALUFlagIn(ALUFlagIn), .ALUControl(ALUControl), .ALUResult(ALUResult), .ALUFlags(ALUFlags));
 
 
     initial begin
@@ -21,7 +21,7 @@ module tb();
         ALUFlagIn = 0;
         ALUControl = 0;
         
-        repeat(100) begin // 100 pruebas aleatorias
+        repeat(500) begin // 100 pruebas aleatorias
             ALUA = $urandom % (1 << n);
             ALUB = $urandom % (1 << n);
             ALUFlagIn = $urandom_range(1, 0);
@@ -29,29 +29,37 @@ module tb();
 
             
             case (ALUControl)
-                4'h0: 
+                4'h0: begin
                     expected_ALUResult = ALUA & ALUB;
+                end
                 
-                4'h1: 
+                4'h1: begin
                     expected_ALUResult = ALUA | ALUB;
+                end
                 
-                4'h2: 
+                4'h2: begin
                     expected_ALUResult = ALUA + ALUB + ALUFlagIn;
+                end
                 
-                4'h3: 
+                4'h3: begin
                     expected_ALUResult = ALUFlagIn ? (ALUB + 1) : (ALUA + 1);
-                
-                4'h4: 
+                end
+
+                4'h4: begin
                     expected_ALUResult = ALUFlagIn ? (ALUB - 1) : (ALUA - 1);
+                end
                 
-                4'h5: 
+                4'h5: begin
                     expected_ALUResult = ALUFlagIn ? ~ALUB : ~ALUA;
+                end
                 
-                4'h6: 
+                4'h6: begin
                     expected_ALUResult = ALUA - ALUB - ALUFlagIn;
+                end
                 
-                4'h7: 
+                4'h7: begin
                     expected_ALUResult = ALUA ^ ALUB;
+                end
                 
                 4'h8: begin
                     fill_pattern = ALUFlagIn ? {n{1'b1}} : {n{1'b0}};
@@ -62,11 +70,14 @@ module tb();
                         else
                             carry_bit = ALUFlagIn;
                     end
+                    else if (ALUB == 0) begin
+                        carry_bit = 0;
+                        expected_ALUResult = ALUA; 
+                    end
                     else begin
                         expected_ALUResult = (ALUA << ALUB) | (fill_pattern >> (n - ALUB));
                         carry_bit = ALUA[n-ALUB];
                     end
-                    expected_ALUFlags[0] = carry_bit;
                 end
                 
                 4'h9: begin
@@ -78,16 +89,23 @@ module tb();
                         else
                             carry_bit = ALUFlagIn;
                     end
+                    else if (ALUB == 0) begin
+                        carry_bit = 0;
+                        expected_ALUResult = ALUA; 
+                    end
                     else begin
                         expected_ALUResult = (ALUA >> ALUB) | (fill_pattern << (n - ALUB));
                         carry_bit = ALUA[ALUB-1];
                     end
-                    expected_ALUFlags[0] = carry_bit;
                 end
                 
-                default: expected_ALUResult = 0;
+                default: begin
+                    expected_ALUResult = 0;
+                    expected_ALUFlags = 2'b10;
+                end
+                
             endcase
-
+            expected_ALUFlags[0] = (ALUControl == 8 | ALUControl == 9) ? carry_bit : 0;
             expected_ALUFlags[1] = (expected_ALUResult == 0) ? 1 : 0;
 
             #10; 

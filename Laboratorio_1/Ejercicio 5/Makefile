@@ -2,28 +2,28 @@ BOARD  = tangnano9k
 FAMILY = GW1N-9C
 DEVICE = GW1NR-LV9QN88PC6/I5
 
-#Nombre del proyecto... Acá ponen el nombre que deseen.
+#Nombre del proyecto
 PROYECT = ALU_parametrizable
 
 #Fuentes de diseno
 SOURCES := $(wildcard src/*.v src/*.sv) #Todas las fuentes .v o .sv que estan en src
 
 #Fuente de simulacion
-TESTBENCH = ../sim/tb.sv
+TESTBENCH = sim/tb.sv
 
 # Constraints para el proyecto
 #aca va el archivo de constraints del proyecto
-CONSTRAINTS = ../cst/CONSTRAINTS.cst
+CONSTRAINTS = cst/tangnano9k_constraints_template.cst
 
 #el top se indica sin la extension .v, esto hace referencia al nombre que le pusieron al módulo y no al archivo en si.
-TOP_DESIGN = ALU
+TOP_DESIGN = ALU_parametrizable
 TOP_TB     = tb
 
 #nombre del vcd que va a generar el tb
 VCD_FILE = ALU_tb
 
 
-all: synth pnr bitstream load
+all: synth pnr bitstream 
 
 # Synthesis
 synth: ${SOURCES}
@@ -44,13 +44,8 @@ bitstream: ${PROYECT}_pnr.json
 	@echo "COMPLETADO"
 		
 #Generar vcd con icarus verilog
-test: ${SOURCES} ${TESTBENCH}
-	@iverilog -o ${PROYECT}_test.o -s ${TOP_TB} -g2005-sv ${TESTBENCH} ${SOURCES}
-	@vvp ${PROYECT}_test.o 
-	
-#Visualizar los diagramas de tiempo con GTKWave
-wv: ${VCD_FILE}
-	gtkwave ${VCD_FILE} 
+test: 
+	dsim src/ALU.sv sim/tb.sv +acc+b -waves waves.mxd
         
 # Cargar el bitstream en la FPGA
 load: ${PROYECT}_${BOARD}.fs
@@ -64,10 +59,10 @@ clean:
 	rm -f *.mxd
 	rm -f *.db
 	rm -f *.env
+	rm -f *.json
 	rm -rf dsim_work
-
-run_dsim:
-	dsim src/ALU.sv sim/tb.sv +acc+b -waves waves.mxd
+	rm -f *.fs
+	
 
 .PHONY: load  wv
 .INTERMEDIATE: ${PROYECT}_pnr.json ${PROYECT}.json
