@@ -13,7 +13,7 @@ TESTBENCH = sim/tb.sv
 
 # Constraints para el proyecto
 #aca va el archivo de constraints del proyecto
-CONSTRAINTS = cst/tangnano9k_constraints_template.cst
+CONSTRAINTS = cst/tangnano9k_constraints.cst
 
 #el top se indica sin la extension .v, esto hace referencia al nombre que le pusieron al módulo y no al archivo en si.
 TOP_DESIGN = ALU_parametrizable
