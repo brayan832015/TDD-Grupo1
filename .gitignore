@@ -1,3 +1,7 @@
 *.json
 *.fs
 *.log
+dsim_work/
+*.env
+*.db
+*.mxd
