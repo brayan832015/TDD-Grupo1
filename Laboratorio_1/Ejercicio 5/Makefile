@@ -19,9 +19,6 @@ CONSTRAINTS = cst/tangnano9k_constraints_template.cst
 TOP_DESIGN = ALU_parametrizable
 TOP_TB     = tb
 
-#nombre del vcd que va a generar el tb
-VCD_FILE = ALU_tb
-
 
 all: synth pnr bitstream 
 
@@ -43,7 +40,7 @@ bitstream: ${PROYECT}_pnr.json
 	@gowin_pack -d ${FAMILY} -o ${PROYECT}_${BOARD}.fs ${PROYECT}_pnr.json
 	@echo "COMPLETADO"
 		
-#Generar vcd con icarus verilog
+#Simulación con DSim
 test: 
 	dsim src/ALU.sv sim/tb.sv +acc+b -waves waves.mxd
         
