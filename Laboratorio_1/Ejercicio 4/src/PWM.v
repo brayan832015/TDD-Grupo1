@@ -28,9 +28,9 @@ module PWM(
     
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            pwm_out <= 0;
+            pwm_out <= 1;
         end else begin
-            pwm_out <= (contador < corte) ? 1 : 0; // La salida PWM se actualiza según el contador y corte
+            pwm_out <= (contador < corte) ? 0 : 1; // La salida PWM se actualiza según el contador y corte
         end
     end
     
