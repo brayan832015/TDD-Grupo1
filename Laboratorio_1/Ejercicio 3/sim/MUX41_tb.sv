@@ -1,8 +1,8 @@
 
 module MUX41_tb();
 
-    parameter WIDTH = 50; // Se define el número de bits (Probar 4, 8, 16 y 50 bits)
-    parameter TESTS = 10; // Número de pruebas
+    parameter WIDTH = 4; // Se define el número de bits (Probar 4, 8, 16 bits)
+    parameter TESTS = 50; // Número de pruebas
     
     logic [WIDTH-1:0] d0, d1, d2, d3;
     logic [1:0] s;
