@@ -9,7 +9,7 @@ PROYECT = MUX41
 SOURCES := $(wildcard src/*.v src/*.sv) #Todas las fuentes .v o .sv que estan en src
 
 #Fuente de simulacion
-TESTBENCH = sim/MUX41tb.sv
+TESTBENCH = sim/MUX41_tb.sv
 
 # Constraints para el proyecto
 #aca va el archivo de constraints del proyecto
