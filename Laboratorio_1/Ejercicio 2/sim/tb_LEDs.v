@@ -2,6 +2,7 @@ module tb_switch_to_led;
 
     reg [3:0] switches;
     wire [3:0] leds;
+    integer i;
 
     // Instancia del módulo a probar
     switch_to_led uut (
@@ -12,52 +13,11 @@ module tb_switch_to_led;
     initial begin
         // Inicializar las entradas
         switches = 4'b0000;
-        #10; // Esperar 10 unidades de tiempo
-        
-        switches = 4'b0001;
-        #10;
-        
-        switches = 4'b0010;
-        #10;
-        
-        switches = 4'b0011;
-        #10;
-        
-        switches = 4'b0100;
-        #10;
-        
-        switches = 4'b0101;
-        #10;
-        
-        switches = 4'b0110;
-        #10;
-        
-        switches = 4'b0111;
-        #10;
-        
-        switches = 4'b1000;
-        #10;
-        
-        switches = 4'b1001;
-        #10;
-        
-        switches = 4'b1010;
-        #10;
-        
-        switches = 4'b1011;
-        #10;
-        
-        switches = 4'b1100;
-        #10;
-        
-        switches = 4'b1101;
-        #10;
-        
-        switches = 4'b1110;
-        #10;
-        
-        switches = 4'b1111;
-        #10;
+        // Ejecutar las pruebas para todos los valores posibles de switches
+        for (i = 0; i < 16; i = i + 1) begin
+            switches = i;
+            #10; // Esperar 10 unidades de tiempo para cada valor
+        end
         
         $stop; // Detener la simulación
     end
