@@ -33,5 +33,5 @@ Este ejercicio se enfoca en el diseño e implementación de una interfaz de tecl
 ## Estructura del Proyecto
 
 - `src/` - Contiene el código fuente en SystemVerilog.
-- `tb/` - Contiene el archivo para la simulación.
-- `constraints.xdc` - Archivo de asignación de señales en la FPGA.
+- `sim/` - Contiene el archivo para la simulación.
+- `cst` - Archivo de asignación de señales en la FPGA.
