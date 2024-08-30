@@ -1,6 +1,6 @@
-# Diseño Antirebotes y Sincronizador en SystemVerilog
+# Ejercicio 1: Diseño antirebotes y sincronizador
 
-Este proyecto implementa un sistema en SystemVerilog para eliminar rebotes y sincronizar entradas de pulsadores e interruptores, con un contador sincronizado y un testbench para verificar su funcionamiento.
+Este ejercicio implementa un sistema en SystemVerilog para eliminar rebotes y sincronizar entradas de pulsadores e interruptores, con un contador sincronizado y un testbench para verificar su funcionamiento.
 
 ## Requisitos
 
