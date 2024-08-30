@@ -26,5 +26,5 @@ Este ejercicio se enfoca en el desarrollo e implementación de una interfaz SPI 
 ## Estructura del Proyecto
 
 - `src/` - Contiene los códigos fuente en SystemVerilog.
-- `tb/` - Contiene el archivo para la simulación.
-- `constraints.xdc` - Archivo para la asignación de señales en la FPGA.
+- `sim/` - Contiene el archivo para la simulación.
+- `cst/` - Archivo para la asignación de señales en la FPGA.
