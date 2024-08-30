@@ -34,5 +34,5 @@ Este ejercicio implementa un sistema en SystemVerilog para eliminar rebotes y si
 ## Estructura del Proyecto
 
 - `src/` - Contiene el código fuente en SystemVerilog.
-- `tb/` - Contiene el testbench para la simulación.
-- `constraints.xdc` - Contiene la asignación de señales en la FPGA.
+- `sim/` - Contiene el testbench para la simulación.
+- `cst` - Contiene la asignación de señales en la FPGA.
