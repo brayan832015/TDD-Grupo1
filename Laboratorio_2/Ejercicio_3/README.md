@@ -1,6 +1,6 @@
 # Ejercicio 3: Interfaz Serial Asíncrona
 
-Este proyecto se enfoca en el desarrollo e implementación de una interfaz UART (Universal Asynchronous Receiver/Transmitter) en FPGA. 
+Este ejercicio se enfoca en el desarrollo e implementación de una interfaz UART (Universal Asynchronous Receiver/Transmitter) en FPGA. 
 
 ## Requisitos
 
