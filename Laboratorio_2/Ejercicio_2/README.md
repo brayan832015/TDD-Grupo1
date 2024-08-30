@@ -1,6 +1,6 @@
 # Ejercicio 2: Interfaz para teclado hexadecimal
 
-Este proyecto se enfoca en el diseño e implementación de una interfaz de teclado hexadecimal utilizando SystemVerilog. 
+Este ejercicio se enfoca en el diseño e implementación de una interfaz de teclado hexadecimal utilizando SystemVerilog. 
 
 ## Requisitos
 
