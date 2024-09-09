@@ -31,3 +31,4 @@ Este ejercicio se enfoca en el desarrollo e implementación de una interfaz UART
 - `src/` - Contiene los códigos fuente en SystemVerilog.
 - `sim/` - Contiene el archivo para la simulación.
 - `cst` - Archivo para la asignación de señales en la FPGA.
+- `UART` - Contiene el módulo UART del repositorio y las simulaciones para comprobar su funcionamiento.
