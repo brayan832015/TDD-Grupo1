@@ -3,21 +3,21 @@ FAMILY = GW1N-9C
 DEVICE = GW1NR-LV9QN88PC6/I5
 
 #Nombre del proyecto
-PROYECT = PONER NOMBRE
+PROYECT = UART
 
 #Fuentes de diseno
 SOURCES := $(wildcard src/*.v src/*.sv) #Todas las fuentes .v o .sv que estan en src
 
 #Fuente de simulacion
-TESTBENCH = sim/ALGO.v
+TESTBENCH = sim/top_tb.sv
 
 # Constraints para el proyecto
 #aca va el archivo de constraints del proyecto
 CONSTRAINTS = cst/tangnano9k_constraints.cst
 
 #el top se indica sin la extension .v, esto hace referencia al nombre que le pusieron al módulo y no al archivo en si.
-TOP_DESIGN = PONER NOMBRE
-TOP_TB     = PONER NOMBRE
+TOP_DESIGN = top_uart
+TOP_TB     = top_tb
 
 
 all: synth pnr bitstream 
