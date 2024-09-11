@@ -1,21 +1,3 @@
-IO_LOC  "transmit_led" 13;
-IO_PORT "transmit_led" DRIVE=8 IO_TYPE=LVCMOS18;
-
-IO_LOC  "transmit_key" 30;
-IO_PORT "transmit_key" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
-
-IO_LOC  "keypad_in[3]" 26;
-IO_PORT "keypad_in[3]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
-
-IO_LOC  "keypad_in[2]" 27;
-IO_PORT "keypad_in[2]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
-
-IO_LOC  "keypad_in[1]" 28;
-IO_PORT "keypad_in[1]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
-
-IO_LOC  "keypad_in[0]" 29;
-IO_PORT "keypad_in[0]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
-
 IO_LOC  "WR2c_led" 11;
 IO_PORT "WR2c_led" DRIVE=8 IO_TYPE=LVCMOS18;
 
@@ -49,8 +31,8 @@ IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=UP;
 IO_LOC  "rst_led" 10;
 IO_PORT "rst_led" DRIVE=8 IO_TYPE=LVCMOS18;
 
-IO_LOC  "tx" 17;
-IO_PORT "tx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_LOC  "uartTx" 17;
+IO_PORT "uartTx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
 
 IO_LOC  "rx" 18;
 IO_PORT "rx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
