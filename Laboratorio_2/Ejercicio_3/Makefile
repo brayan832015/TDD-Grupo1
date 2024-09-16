@@ -42,7 +42,7 @@ bitstream: ${PROYECT}_pnr.json
 		
 #Simulación con DSim
 test: 
-	dsim src/PONER NOMBRE ARCHIVO FUENTE.v sim/PONER NOMBRE ARCHIVO SIMULACION.v +acc+b -waves waves.mxd
+	dsim src/top_uart.sv src/uart_rx.sv src/uart_tx.sv sim/top_tb.sv +acc+b -waves waves.mxd
         
 # Cargar el bitstream en la FPGA
 load: ${PROYECT}_${BOARD}.fs
