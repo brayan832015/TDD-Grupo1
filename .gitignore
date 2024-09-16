@@ -1,5 +1,4 @@
 *.json
-*.fs
 *.log
 dsim_work/
 *.env
