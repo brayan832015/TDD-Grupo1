@@ -1,0 +1,4 @@
+IO_LOC "clk"   31;  // Reloj del sistema
+IO_LOC "cs_n"  15;  // Pin para la señal de selección de chip
+IO_LOC "mosi"  16;  // Pin para la línea MOSI (Master Out Slave In)
+IO_LOC "sclk"  17;  // Pin para el reloj SPI
