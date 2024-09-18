@@ -9,6 +9,10 @@ module tb_spi_master;
     wire cs_n;
     wire done;
 
+    reg [7:0] expected_data; // Dato esperado para la comprobación
+    reg error;               // Indica si ocurrió un error durante la transmisión
+    reg success;             // Indica si la transmisión fue exitosa
+
     // Instancia del módulo SPI maestro
     spi_master uut (
         .clk(clk),
@@ -32,7 +36,10 @@ module tb_spi_master;
         // Inicializar señales
         reset_n = 0;
         start = 0;
-        data_in = 8'hA5;  // Ejemplo de dato para SPI
+        data_in = 8'hA5;  // Dato a enviar por SPI
+        expected_data = 8'hA5; // Dato esperado para la comparación
+        error = 0;
+        success = 0;
         #20 reset_n = 1;
 
         // Iniciar la transmisión
@@ -42,19 +49,25 @@ module tb_spi_master;
         // Esperar a que termine
         wait(done);
 
+        // Verificación
+        if (uut.shift_reg != expected_data) begin
+            $display("ERROR: Dato enviado: %h, Dato esperado: %h", uut.shift_reg, expected_data);
+            error = 1;
+        end else begin
+            $display("SUCCESS: Dato enviado correctamente.");
+            success = 1;
+        end
+
         // Nueva transmisión
         #100 data_in = 8'h3C;
+        expected_data = 8'h3C; // Actualizar dato esperado
         #30 start = 1;
         #10 start = 0;
 
         wait(done);
 
-        #100 $finish;
-    end
-
-    // Monitoreo de señales
-    initial begin
-        $monitor("Time: %d | Data: %h | sclk: %b | mosi: %b | cs_n: %b | Done: %b", 
-                 $time, data_in, sclk, mosi, cs_n, done);
-    end
-endmodule
+        // Verificación
+        if (uut.shift_reg != expected_data) begin
+            $display("ERROR: Dato enviado: %h, Dato esperado: %h", uut.shift_reg, expected_data);
+            error = 1;
+        end else begin
