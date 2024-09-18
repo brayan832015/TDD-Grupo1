@@ -1,0 +1,24 @@
+IO_LOC "clk"      1;   // Reloj del sistema
+IO_LOC "cs_n"     15;   // Pin para la señal de selección de chip (Chip Select)
+IO_LOC "mosi"     16;   // Pin para la línea MOSI (Master Out Slave In)
+IO_LOC "miso"     76;   // Pin para la línea MISO (Master In Slave Out)
+IO_LOC "sclk"     17;   // Pin para el reloj SPI
+IO_LOC "lcd_data[0]"  18; // Dato 0 del LCD
+IO_LOC "lcd_data[1]"  19; // Dato 1 del LCD
+IO_LOC "lcd_data[2]"  20; // Dato 2 del LCD
+IO_LOC "lcd_data[3]"  21; // Dato 3 del LCD
+IO_LOC "lcd_data[4]"  22; // Dato 4 del LCD
+IO_LOC "lcd_data[5]"  23; // Dato 5 del LCD
+IO_LOC "lcd_data[6]"  24; // Dato 6 del LCD
+IO_LOC "lcd_data[7]"  25; // Dato 7 del LCD
+IO_LOC "lcd_data[8]"  26; // Dato 8 del LCD
+IO_LOC "lcd_data[9]"  27; // Dato 9 del LCD
+IO_LOC "lcd_data[10]" 28; // Dato 10 del LCD
+IO_LOC "lcd_data[11]" 29; // Dato 11 del LCD
+IO_LOC "lcd_data[12]" 30; // Dato 12 del LCD
+IO_LOC "lcd_data[13]" 31; // Dato 13 del LCD
+IO_LOC "lcd_data[14]" 32; // Dato 14 del LCD
+IO_LOC "lcd_data[15]" 33; // Dato 15 del LCD
+IO_LOC "lcd_rs"     34; // Pin para Register Select (RS)
+IO_LOC "lcd_rw"     35; // Pin para Read/Write (RW)
+IO_LOC "lcd_enable" 36; // Pin para Enable (E)
