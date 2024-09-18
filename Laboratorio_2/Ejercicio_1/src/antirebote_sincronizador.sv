@@ -1,7 +1,7 @@
 module Contador(
     input logic clk,
     input logic rst_n,
-    input logic EN_b,        //Enable raw input
+    input logic EN_b,        //Entrada Enable botón con rebote
     output logic [7:0] conta //8-bit counter output
 );
 
@@ -22,9 +22,9 @@ module debounce (
     output logic EN_s //Salida estabilizada (sin rebotes)
 );
  
-    parameter integer DEBOUNCE_TIME = 27000000/2000; // Tiempo de debounce 1ms
+    parameter integer DEBOUNCE_TIME = 27000000/500; // Tiempo de debounce 2ms
     
-    logic [13:0] counter; //Contador para medir el tiempo de debounce
+    logic [15:0] counter; //Contador para medir el tiempo de debounce
     logic EN_sync;        //Señal sincronizada al reloj
 
     always_ff@(posedge clk, posedge rst_n) begin
