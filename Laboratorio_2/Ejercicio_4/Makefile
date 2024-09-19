@@ -42,7 +42,7 @@ bitstream: ${PROYECT}_pnr.json
 		
 #Simulación con DSim
 test: 
-	dsim src/spi_lcd.v sim/lcd_tb.v +acc+b -waves waves.mxd
+	dsim src/color_control.v src/lcd_draw.v src/lcd_init.v src/spi_master.v src/uart_rx.v sim/lcd_tb.v +acc+b -waves waves.mxd
         
 # Cargar el bitstream en la FPGA
 load: ${PROYECT}_${BOARD}.fs
