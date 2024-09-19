@@ -1,7 +1,7 @@
 module Contador(
     input logic clk,
     input logic rst_n,
-    input logic EN_b,        //Entrada Enable botón con rebote
+    input logic EN_s,        //Entrada Enable estabilizada
     output logic [7:0] conta //8-bit counter output
 );
 
@@ -22,7 +22,7 @@ module debounce (
     output logic EN_s //Salida estabilizada (sin rebotes)
 );
  
-    parameter integer DEBOUNCE_TIME = 27000000/500; // Tiempo de debounce 2ms
+    parameter integer DEBOUNCE_TIME = 54000; //Tiempo de debounce = 2ms = 27MHz/500
     
     logic [15:0] counter; //Contador para medir el tiempo de debounce
     logic EN_sync;        //Señal sincronizada al reloj
@@ -75,7 +75,7 @@ module top_module (
     Contador contador_instance (
         .clk(clk),
         .rst_n(rst_n),
-        .EN_b(EN_s),  //Se usa la señal estable para contar
+        .EN_s(EN_s),  //Se usa la señal estable para contar
         .conta(conta)
     );
 
