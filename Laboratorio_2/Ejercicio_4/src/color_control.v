@@ -1,12 +1,17 @@
 module color_control (
     input wire clk,
-    input wire rst_n,
-    input wire [7:0] uart_data,
-    input wire uart_ready,
-    output reg [15:0] color_p1,
-    output reg [15:0] color_p2
+    input wire reset,
+    input wire [7:0] color_data,
+    output reg [23:0] color_config
 );
+    // Lógica para controlar las configuraciones de color
 
-// Lógica para controlar las configuraciones de color
-
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            color_config <= 24'hFFFFFF; // Color blanco por defecto
+        end else begin
+            // Actualizar el color basado en el color_data recibido
+            color_config <= {color_data, color_data, color_data}; // Ejemplo simple
+        end
+    end
 endmodule
