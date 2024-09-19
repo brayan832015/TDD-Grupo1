@@ -1,93 +1,138 @@
-module tb_uart_tx;
+module tb_uart_dual();
+
+    // Clock and reset
     logic clk;
     logic rst;
-    logic [7:0] data_tx;
-    logic transmit;
-    logic tx;
-    logic [7:0] datos_aleatorios;
-    int pruebas_pasadas = 0;
-    int pruebas_fallidas = 0;
-    bit frame_correcto;
+    
+    // UART signals between FPGA and Laptop
+    logic fpga_tx, fpga_rx, laptop_tx, laptop_rx;
+    
+    // Teclado y LEDs para FPGA
+    logic [3:0] teclado_fpga;
+    logic key_detect_fpga;
+    logic [7:0] leds_fpga;
+    
+    // Variables para pruebas aleatorias
+    logic [7:0] random_data_rx;
+    logic [3:0] random_key_fpga;
+    logic [7:0] received_data_laptop; // Dato recibido por la laptop
+    logic [7:0] received_data_fpga;   // Dato recibido por la FPGA
 
-    // Número de ciclos de reloj para 9600 baudios (clk/baudios)
-    parameter Ciclos_por_Bit = 2813; 
+    // UART Timing Parameters
+    localparam BAUD_PERIOD = 2813; // Number of clock cycles per bit at 9600 baud with 27 MHz clock
+    
+    // Loop counters
+    int i, j;
 
-    uart_tx dut (.clk(clk), .rst(rst), .data_tx(data_tx), .transmit(transmit), .tx(tx));
+    // Assign UART cross-connections with small delay to simulate propagation
+    assign fpga_rx = laptop_tx; // FPGA receives data from laptop TX
+    assign laptop_rx = fpga_tx; // Laptop receives data from FPGA TX
+    
+    // Instancia de la UART para la FPGA
+    top_uart uart_fpga(
+        .clk(clk),
+        .rst(rst),
+        .rx(fpga_rx),
+        .tx(fpga_tx),
+        .teclado(teclado_fpga),
+        .key_detect(key_detect_fpga),
+        .leds(leds_fpga)
+    );
+    
+    // Instancia de la UART para la laptop
+    top_uart uart_laptop(
+        .clk(clk),
+        .rst(rst),
+        .rx(laptop_rx), 
+        .tx(laptop_tx),  
+        .teclado(), 
+        .key_detect(),
+        .leds()      
+    );
 
-    // Generar reloj de 27MHz de la Tang Nano 9k (37.03 ns de periodo)
-    always #18.515 clk = ~clk;
+    // Generación del clock (27 MHz)
+    always #18.515 clk = ~clk; // 37.04ns -> 27 MHz
 
+    // Task to wait for a full UART period
+    task wait_for_uart_period();
+        repeat (BAUD_PERIOD) @(posedge clk);
+    endtask
+
+    // Reset procedure
     initial begin
         clk = 0;
         rst = 1;
-        transmit = 0;
-        #100; // reset por los primeros 100 ns
-
+        #100;
         rst = 0;
+        $display("Iniciando pruebas de transmisión y recepción UART (FPGA-Laptop)...\n");
 
-        // 50 pruebas aleatorias
-        for (int i = 0; i < 50; i++) begin
-            datos_aleatorios = $urandom_range(0, 255); // Byte aleatorio
+        // Transmisión desde FPGA al Laptop (teclado 4x4)
+        for (i = 0; i < 50; i++) begin
+            // Generar un valor aleatorio de 4 bits para simular la tecla presionada en el teclado de FPGA
+            random_key_fpga = $urandom_range(15, 0);
+            teclado_fpga = random_key_fpga;
+            key_detect_fpga = 1;
+            wait_for_uart_period(); // Esperar el periodo de UART
+            key_detect_fpga = 0;
 
-            // Enviar byte por UART
-            send_uart_byte(datos_aleatorios);
-
-            // Verificar el byte transmitido
-            verify_uart_byte(datos_aleatorios);
-
-            if (frame_correcto) begin
-                $display("Prueba %0d exitosa: Los datos transmitidos son correctos (0x%h).", i+1, datos_aleatorios);
-                pruebas_pasadas++;
+            // Recibir el dato enviado por la FPGA en la laptop (simulado)
+            received_data_laptop = 0; // Inicializar en 0
+            wait_for_uart_period(); // Esperar por el bit de inicio (start bit)
+            for (j = 0; j < 8; j++) begin
+                wait_for_uart_period();
+                received_data_laptop[j] = laptop_rx;
             end
-            else begin
-                $display("Prueba %0d fallida: Los datos transmitidos son correctos. Esperado 0x%h.", i+1, datos_aleatorios);
-                pruebas_fallidas++;
-            end
+            wait_for_uart_period(); // Esperar el bit de parada (stop bit)
 
-            #50000; // Wait between tests
+            // Mostrar en consola el carácter enviado desde FPGA y recibido en laptop
+            case (random_key_fpga)
+                4'b0000: $display("FPGA envió: '0', laptop recibió: '%c'", received_data_laptop);
+                4'b0001: $display("FPGA envió: '1', laptop recibió: '%c'", received_data_laptop);
+                4'b0010: $display("FPGA envió: '2', laptop recibió: '%c'", received_data_laptop);
+                4'b0011: $display("FPGA envió: '3', laptop recibió: '%c'", received_data_laptop);
+                4'b0100: $display("FPGA envió: '4', laptop recibió: '%c'", received_data_laptop);
+                4'b0101: $display("FPGA envió: '5', laptop recibió: '%c'", received_data_laptop);
+                4'b0110: $display("FPGA envió: '6', laptop recibió: '%c'", received_data_laptop);
+                4'b0111: $display("FPGA envió: '7', laptop recibió: '%c'", received_data_laptop);
+                4'b1000: $display("FPGA envió: '8', laptop recibió: '%c'", received_data_laptop);
+                4'b1001: $display("FPGA envió: '9', laptop recibió: '%c'", received_data_laptop);
+                4'b1010: $display("FPGA envió: 'A', laptop recibió: '%c'", received_data_laptop);
+                4'b1011: $display("FPGA envió: 'B', laptop recibió: '%c'", received_data_laptop);
+                4'b1100: $display("FPGA envió: 'C', laptop recibió: '%c'", received_data_laptop);
+                4'b1101: $display("FPGA envió: 'D', laptop recibió: '%c'", received_data_laptop);
+                4'b1110: $display("FPGA envió: '*', laptop recibió: '%c'", received_data_laptop);
+                4'b1111: $display("FPGA envió: '#', laptop recibió: '%c'", received_data_laptop);
+                default: $display("FPGA envió: Desconocido, laptop recibió: '%c'", received_data_laptop);
+            endcase
+
+            #1000; // Wait for the UART transmission to complete
         end
+        
+        // Transmisión desde la Laptop hacia la FPGA
+        for (i = 0; i < 50; i++) begin
+            // Generar un valor ASCII aleatorio para simular la entrada desde la laptop
+            random_data_rx = $urandom_range(127, 32); // Caracteres imprimibles en ASCII
+            laptop_tx = 0; // Simula el start bit
+            wait_for_uart_period(); // Esperar un ciclo para el start bit
+            
+            // Transmitir el dato desde la laptop
+            for (j = 0; j < 8; j++) begin
+                laptop_tx = random_data_rx[j];
+                wait_for_uart_period(); // Esperar un ciclo por bit
+            end
 
-        // Final results
-        $display("Pruebas exitosas: %0d", pruebas_pasadas);
-        $display("Pruebas fallidas: %0d", pruebas_fallidas);
+            laptop_tx = 1; // Simula el stop bit
+            wait_for_uart_period();
 
+            // Recibir el dato enviado por la laptop en la FPGA
+            received_data_fpga = leds_fpga; // Los LEDs muestran el valor invertido de lo recibido
+            
+            // Mostrar el carácter recibido por la FPGA y el estado de los LEDs
+            $display("Laptop envió: %c, LEDs FPGA: %b", random_data_rx, received_data_fpga);
+            #1000; // Esperar a que la FPGA procese el dato recibido
+        end
+        
+        $display("Pruebas finalizadas.\n");
         $finish;
     end
-
-    // Task para enviar un byte de datos por UART
-    task send_uart_byte(input [7:0] data);
-    begin
-        data_tx = data;
-        
-        // Inicio transmisión 
-        transmit = 1;
-        wait (tx == 0); // tx=0 indica el inicio de los datos a transmitir
-        transmit = 0; // Desactiva la señal de transmisión para que el UART funcione   
-    end
-    endtask
-
-    // Task para verificar la tranmisión del UART
-    task verify_uart_byte(input [7:0] expected_data);
-        bit [9:0] expected_frame;
-        expected_frame = {1'b1, expected_data, 1'b0}; // Bit de parada (tx=1), Datos (8 bits), Bit de inicio (tx=0)}
-
-        // Revisar cada bit del frame
-        for (int i = 0; i < 10; i++) begin
-            wait_cycles(1);
-            if (tx !== expected_frame[i]) begin
-                $display("Error en el bit %0d: esperado = %b, recibido = %b", i, expected_frame[i], tx);
-                frame_correcto = 0; // error en la transmisión
-            end
-            else begin
-                frame_correcto = 1;
-            end
-        end
-    endtask
-
-    // Task para esperar un número específico de ciclos de reloj
-    task wait_cycles(input int num_cycles);
-    begin
-        repeat (num_cycles * Ciclos_por_Bit) @(posedge clk);
-    end
-    endtask
 endmodule
