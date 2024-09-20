@@ -1,92 +1,96 @@
-module uart_rx (
-    input wire clk,            // Reloj del sistema
-    input wire reset,          // Señal de reset
-    input wire uart_rx,        // Línea de recepción UART
-    output reg [7:0] data_out, // Datos recibidos
-    output reg data_ready      // Señal que indica que los datos están listos
-);
+module uart_rx(
+    input logic clk,
+    input logic rst,
+    input logic rx,
+    output logic [7:0] data_rx,  // Datos recibidos
+    output logic valid_data,     // Indica cuando los datos son válidos
+    output logic data_ready      // Indica que se ha recibido un dato completo
+    );
 
-    // Parámetros de configuración
-    parameter BAUD_RATE = 9600; // Tasa de baudios
-    parameter CLOCK_FREQ = 50000000; // Frecuencia del reloj (50MHz)
-    parameter CLOCKS_PER_BIT = CLOCK_FREQ / BAUD_RATE; // Ciclos de reloj por bit
-
-    // Estados de la máquina de estados
-    localparam IDLE = 0, START = 1, DATA = 2, STOP = 3;
+    // Variables internas
+    logic shift;
+    logic state, nextstate;
+    logic [3:0] bit_counter;
+    logic [1:0] sample_counter;
+    logic [13:0] baudrate_counter;
+    logic [9:0] rxshift_reg;
+    logic clear_bitcounter, inc_bitcounter, inc_samplecounter, clear_samplecounter;
     
-    reg [1:0] state;          // Estado actual
-    reg [3:0] bit_count;      // Contador de bits recibidos
-    reg [15:0] clock_counter;  // Contador de ciclos de reloj
-    reg sample;               // Señal de muestreo
-    reg [7:0] shift_reg;      // Registro de desplazamiento para recibir bits
+    // Constantes
+    parameter clk_freq = 27000000;
+    parameter baud_rate = 9600;
+    parameter div_sample = 4;
+    parameter div_counter = clk_freq / (baud_rate * div_sample);
+    parameter mid_sample = div_sample / 2;
+    parameter div_bit = 10;
 
-    // Proceso principal
-    always @(posedge clk or posedge reset) begin
-        if (reset) begin
-            state <= IDLE;
-            bit_count <= 0;
-            clock_counter <= 0;
-            data_out <= 0;
-            data_ready <= 0;
-            sample <= 0;
-            shift_reg <= 0;
+    assign data_rx = rxshift_reg[8:1];
+
+    // Lógica de recepción UART
+    always @(posedge clk) begin
+        if (rst) begin
+            state <= 0;
+            bit_counter <= 0;
+            baudrate_counter <= 0;
+            sample_counter <= 0;
         end else begin
-            case (state)
-                IDLE: begin
-                    data_ready <= 0;
-                    // Esperar el inicio del bit (nivel bajo)
-                    if (uart_rx == 0) begin
-                        // Detección del inicio
-                        state <= START;
-                        clock_counter <= 0; // Reiniciar el contador
-                    end
-                end
-
-                START: begin
-                    // Esperar a que se estabilice el inicio
-                    if (clock_counter < (CLOCKS_PER_BIT / 2)) begin
-                        clock_counter <= clock_counter + 1;
-                    end else begin
-                        // Muestreo del primer bit de datos
-                        state <= DATA;
-                        bit_count <= 0;
-                        clock_counter <= 0;
-                    end
-                end
-
-                DATA: begin
-                    // Muestreo de los bits de datos
-                    if (clock_counter < CLOCKS_PER_BIT) begin
-                        clock_counter <= clock_counter + 1;
-                    end else begin
-                        // Guardar el bit recibido en el registro de desplazamiento
-                        shift_reg <= {uart_rx, shift_reg[7:1]};
-                        bit_count <= bit_count + 1;
-                        clock_counter <= 0;
-
-                        // Comprobar si se han recibido los 8 bits
-                        if (bit_count == 7) begin
-                            state <= STOP; // Cambiar al estado de detección de parada
-                        end
-                    end
-                end
-
-                STOP: begin
-                    // Esperar el bit de parada
-                    if (clock_counter < CLOCKS_PER_BIT) begin
-                        clock_counter <= clock_counter + 1;
-                    end else begin
-                        // Verificar el bit de parada (debe ser alto)
-                        if (uart_rx == 1) begin
-                            // Dato recibido correctamente
-                            data_out <= shift_reg; // Almacenar los datos recibidos
-                            data_ready <= 1; // Indicar que los datos están listos
-                        end
-                        state <= IDLE; // Regresar al estado inicial
-                    end
-                end
-            endcase
+            baudrate_counter <= baudrate_counter + 1;
+            if (baudrate_counter >= div_counter - 1) begin
+                baudrate_counter <= 0;
+                state <= nextstate;
+                if (shift)
+                    rxshift_reg <= {rx, rxshift_reg[9:1]};
+                if (clear_samplecounter)
+                    sample_counter <= 0;
+                if (inc_samplecounter)
+                    sample_counter <= sample_counter + 1;
+                if (clear_bitcounter)
+                    bit_counter <= 0;
+                if (inc_bitcounter)
+                    bit_counter <= bit_counter + 1;
+            end
         end
     end
 
+    // Máquina de estados
+    always @(posedge clk) begin
+        shift <= 0;
+        clear_samplecounter <= 0;
+        inc_samplecounter <= 0;
+        clear_bitcounter <= 0;
+        inc_bitcounter <= 0;
+        nextstate <= 0;
+        case (state)
+            0: begin
+                // Estado de espera para inicio de trama
+                if (rx) begin
+                    nextstate <= 0;
+                    valid_data <= 0;
+                    data_ready <= 0;
+                end else begin
+                    nextstate <= 1;
+                    clear_bitcounter <= 1;
+                    clear_samplecounter <= 1;
+                end
+            end
+            1: begin
+                // Estado de recepción de datos
+                nextstate <= 1;
+                if (sample_counter == mid_sample - 1)
+                    shift <= 1;
+                if (sample_counter == div_sample - 1) begin
+                    if (bit_counter == div_bit - 1) begin
+                        nextstate <= 0;
+                        data_ready <= 1;  // Indicar que el dato está listo
+                        valid_data <= 1;  // Indicar que el dato es válido
+                    end
+                    inc_bitcounter <= 1;
+                    clear_samplecounter <= 1;
+                end else
+                    inc_samplecounter <= 1;
+            end
+            default:
+                nextstate <= 0;
+        endcase
+    end
 endmodule

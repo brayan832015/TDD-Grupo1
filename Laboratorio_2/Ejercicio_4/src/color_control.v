@@ -1,27 +1,31 @@
 module color_control (
     input wire clk,
     input wire reset,
-    input wire [7:0] color_data,
-    input wire toggle_color,
-    output reg [23:0] color_config
+    input wire toggle_color, // Señal para alternar el patrón de color
+    output reg [23:0] color_p1, // Color 1
+    output reg [23:0] color_p2  // Color 2
 );
-    // Lógica para controlar las configuraciones de color
+
     reg select_color;
 
     always @(posedge clk or posedge reset) begin
         if (reset) begin
-            color_config <= 24'hFFFFFF; // Color blanco por defecto
-            select_color <= 0; // Iniciar con la configuración 1
+            select_color <= 0; // Comenzar con la configuración 1 (Rojo y Azul)
         end else if (toggle_color) begin
-            select_color <= ~select_color; // Alternar configuración
-        end
-
-        if (select_color) begin
-            // Configuración 1: Rojo y Azul
-            color_config <= {8'hFF, 8'h00, 8'h00}; // Rojo
-        end else begin
-            // Configuración 2: Verde y Azul
-            color_config <= {8'h00, 8'hFF, 8'h00}; // Verde
+            select_color <= ~select_color; // Alternar entre las configuraciones
         end
     end
+
+    always @(*) begin
+        if (select_color) begin
+            // Configuración 1: P1 = Rojo, P2 = Azul
+            color_p1 = 24'hFF0000; // Rojo
+            color_p2 = 24'h0000FF; // Azul
+        end else begin
+            // Configuración 2: P1 = Verde, P2 = Azul
+            color_p1 = 24'h00FF00; // Verde
+            color_p2 = 24'h0000FF; // Azul
+        end
+    end
+
 endmodule
