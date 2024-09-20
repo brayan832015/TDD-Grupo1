@@ -63,16 +63,19 @@ module clock_divider(
     output logic scan_clk
 );
     
-    logic [18:0] clk_div;
+    logic [19:0] clk_div;
 
-    always @(posedge clk, posedge rst_n) begin
+    always_ff@(posedge clk, posedge rst_n) begin
         if (!rst_n) begin
             clk_div <= 0;
             scan_clk <= 0;
         end else begin
             clk_div <= clk_div + 1;
-            scan_clk <= clk_div[18]; //Relentiza el clock dividiendo el clock original por 2^18
-        end                          //Esto resulta en un reloj de escaneo de 102Hz
+            if (clk_div == 270000) begin //Esto resulta en un reloj de escaneo de 100Hz
+                clk_div <= 0;
+                scan_clk <= ~scan_clk; 
+            end
+        end                           
     end
 
 endmodule
