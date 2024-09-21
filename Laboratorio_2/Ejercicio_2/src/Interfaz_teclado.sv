@@ -1,28 +1,7 @@
-module key_detect(
-    input logic clk,
-    input logic rst_n,
-    input logic y4, y3, y2, y1, //Entradas activas en bajo
-    output logic key //Salida -> Entrada a Key_bounce_elimination
-);
-
-    always@(posedge clk, posedge rst_n) begin
-        if(!rst_n) begin
-            key <= 0;
-        end else begin
-            if(y4 && y3 && y2 && y1) //Solo en este caso no se está presionando ninguna tecla
-                key <= 0;
-            else
-                key <= 1;
-        end
-    end
-
-endmodule
-
-
 //Key_bounce_elimination
 module debounce(
     input logic clk,
-    input logic rst_n,
+    input logic rst,
     input logic EN_b, //Entrada del botón con rebotes (key)
     output logic EN_s //Salida estabilizada (sin rebotes)
 );
@@ -32,8 +11,8 @@ module debounce(
     logic [15:0] counter; //Contador para medir el tiempo de debounce
     logic EN_sync;        //Señal sincronizada al reloj
 
-    always_ff@(posedge clk, posedge rst_n) begin
-        if (!rst_n) begin
+    always_ff@(posedge clk, posedge rst) begin
+        if (rst) begin
             EN_sync <= 0;
             EN_s <= 0;
             counter <= 0;
@@ -59,14 +38,14 @@ endmodule
 
 module clock_divider(
     input logic clk,
-    input logic rst_n,
+    input logic rst,
     output logic scan_clk
 );
     
-    logic [19:0] clk_div;
+    logic [18:0] clk_div;
 
-    always_ff@(posedge clk, posedge rst_n) begin
-        if (!rst_n) begin
+    always_ff@(posedge clk, posedge rst) begin
+        if (rst) begin
             clk_div <= 0;
             scan_clk <= 0;
         end else begin
@@ -83,13 +62,13 @@ endmodule
 
 module counter_2bit(
     input logic scan_clk,
-    input logic rst_n,
+    input logic rst,
     input logic inhibit, //inhibit de Key_bounce_elimination (EN_s)
     output logic [1:0] count
 );
 
-    always@(posedge scan_clk, posedge rst_n) begin
-        if(!rst_n) begin
+    always@(posedge scan_clk, posedge rst) begin
+        if(rst) begin
             count <= 0;
         end else begin
             if(~inhibit) //Cuenta cuando inhibit es 0
@@ -102,14 +81,14 @@ endmodule
 
 module flip_flop_EN(
     input logic clk,
-    input logic rst_n,
+    input logic rst,
     input logic ck, //(normalmente 0) data_available de Key_bounce_elimination (EN_s)
     input logic data,
     output logic out
 );
 
-    always_ff@(posedge clk, posedge rst_n) begin
-        if(!rst_n) begin
+    always_ff@(posedge clk, posedge rst) begin
+        if(rst) begin
             out <= 0;
         end else begin
             if(ck)
@@ -127,8 +106,8 @@ endmodule
 module top_module(
     //Entradas a la FPGA
     input logic clk,
-    input logic rst_n,
-    input logic y4, y3, y2, y1,
+    input logic rst,
+    input logic key, //Input key_detect
     input logic c, //Output C del codificador
     input logic d, //Output D del codificador msb
 
@@ -139,19 +118,11 @@ module top_module(
     output logic out_D
 );
 
-    logic key;
-
-    key_detect key_detect_instance(
-        .clk(clk),
-        .rst_n(rst_n),
-        .y4(y4), .y3(y3), .y2(y2), .y1(y1),
-        .key(key) //-> debounce
-    );
-
+    logic [1:0] count;
 
     debounce debounce_instance(
         .clk(clk),
-        .rst_n(rst_n),
+        .rst(rst),
         .EN_b(key), //<- debounce
         .EN_s(EN_s) //-> counter_2bit
     );
@@ -159,14 +130,14 @@ module top_module(
 
     clock_divider clock_divider_instance(
         .clk(clk),
-        .rst_n(rst_n),
+        .rst(rst),
         .scan_clk(scan_clk) //-> counter_2bit
     );
 
 
     counter_2bit counter_2bit_instance(
         .scan_clk(scan_clk), //<- clock_divider
-        .rst_n(rst_n),
+        .rst(rst),
         .inhibit(EN_s), //<- debounce
         .count(count) //-> flip_flop_EN
     );
@@ -174,7 +145,7 @@ module top_module(
 
     flip_flop_EN flip_flop_EN_inst1(
         .clk(clk),
-        .rst_n(rst_n),
+        .rst(rst),
         .ck(EN_s), //<- debounce
         .data(count[0]), //data1 = A = lsb
         .out(out_A)
@@ -182,7 +153,7 @@ module top_module(
 
     flip_flop_EN flip_flop_EN_inst2(
         .clk(clk),
-        .rst_n(rst_n),
+        .rst(rst),
         .ck(EN_s), //<- debounce
         .data(count[1]), //data2 = B
         .out(out_B)
@@ -190,7 +161,7 @@ module top_module(
 
     flip_flop_EN flip_flop_EN_inst3(
         .clk(clk),
-        .rst_n(rst_n),
+        .rst(rst),
         .ck(EN_s), //<- debounce
         .data(c), //data3 = C
         .out(out_C)
@@ -198,7 +169,7 @@ module top_module(
 
     flip_flop_EN flip_flop_EN_inst4(
         .clk(clk),
-        .rst_n(rst_n),
+        .rst(rst),
         .ck(EN_s), //<- debounce
         .data(d), //data4 = D = msb
         .out(out_D)
