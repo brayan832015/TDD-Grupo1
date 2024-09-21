@@ -71,8 +71,9 @@ module counter_2bit(
         if(rst) begin
             count <= 0;
         end else begin
-            if(~inhibit) //Cuenta cuando inhibit es 0
-            count <= count+1;
+            if(~inhibit) begin //Cuenta cuando inhibit es 0
+                count <= count+1;
+            end
         end
     end
 
