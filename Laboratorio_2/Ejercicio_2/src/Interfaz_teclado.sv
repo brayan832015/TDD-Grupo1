@@ -2,7 +2,7 @@
 module debounce(
     input logic clk,
     input logic rst,
-    input logic EN_b, //Entrada del botón con rebotes (key)
+    input logic EN_b, //Entrada del botón con rebotes (key) activo en 1
     output logic EN_s //Salida estabilizada (sin rebotes)
 );
  
@@ -42,7 +42,7 @@ module clock_divider(
     output logic scan_clk
 );
     
-    logic [18:0] clk_div;
+    logic [20:0] clk_div;
 
     always_ff@(posedge clk, posedge rst) begin
         if (rst) begin
@@ -50,7 +50,7 @@ module clock_divider(
             scan_clk <= 0;
         end else begin
             clk_div <= clk_div + 1;
-            if (clk_div == 270000) begin //Esto resulta en un reloj de escaneo de 100Hz
+            if (clk_div == 1080000) begin //Esto resulta en un reloj de escaneo de 25Hz
                 clk_div <= 0;
                 scan_clk <= ~scan_clk; 
             end
@@ -107,7 +107,7 @@ module top_module(
     //Entradas a la FPGA
     input logic clk,
     input logic rst,
-    input logic key, //Input key_detect
+    input logic key, //Input key_detect = EN_b
     input logic c, //Output C del codificador
     input logic d, //Output D del codificador msb
 
