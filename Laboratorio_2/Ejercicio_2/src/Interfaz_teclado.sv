@@ -4,6 +4,7 @@ module debounce(
     input logic rst,
     input logic EN_b, //Entrada del botón con rebotes (key) activo en 1
     output logic EN_s //Salida estabilizada (sin rebotes)
+    
 );
  
     parameter integer DEBOUNCE_TIME = 54000; //Tiempo de debounce = 2ms = 27MHz/500
@@ -113,13 +114,12 @@ module top_module(
     input logic d, //Output D del codificador msb
 
     //Salidas controladas por la FPGA
+    output logic [1:0] count,
     output logic out_A,
     output logic out_B, 
     output logic out_C,
     output logic out_D
 );
-
-    logic [1:0] count;
 
     debounce debounce_instance(
         .clk(clk),
