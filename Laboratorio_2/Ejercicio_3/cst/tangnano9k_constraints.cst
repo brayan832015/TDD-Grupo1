@@ -1,47 +1,48 @@
-IO_LOC  "key_detect" 30;
-IO_PORT "key_detect" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
+IO_LOC  "key_detect" 16;
+IO_PORT "key_detect" DRIVE=8;
 
-IO_LOC  "teclado[3]" 26;
-IO_PORT "teclado[3]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
+IO_LOC  "count[0]" 29;
 
-IO_LOC  "teclado[2]" 27;
-IO_PORT "teclado[2]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
+IO_LOC  "count[1]" 30;
 
-IO_LOC  "teclado[1]" 28;
-IO_PORT "teclado[1]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
+IO_LOC  "key" 28;
+IO_PORT "key" PULL_MODE=DOWN;
 
-IO_LOC  "teclado[0]" 29;
-IO_PORT "teclado[0]" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
+IO_LOC  "c" 27;
+IO_PORT "c" PULL_MODE=DOWN;
+
+IO_LOC  "d" 26;
+IO_PORT "d" PULL_MODE=DOWN;
 
 IO_LOC  "leds[6]" 85;
-IO_PORT "leds[6]" DRIVE=8 IO_TYPE=LVCMOS18;
+IO_PORT "leds[6]" DRIVE=8;
 
 IO_LOC  "leds[5]" 84;
-IO_PORT "leds[5]" DRIVE=8 IO_TYPE=LVCMOS18;
+IO_PORT "leds[5]" DRIVE=8;
 
 IO_LOC  "leds[4]" 83;
-IO_PORT "leds[4]" DRIVE=8 IO_TYPE=LVCMOS18;
+IO_PORT "leds[4]" DRIVE=8;
 
 IO_LOC  "leds[3]" 82;
-IO_PORT "leds[3]" DRIVE=8 IO_TYPE=LVCMOS18;
+IO_PORT "leds[3]" DRIVE=8;
 
 IO_LOC  "leds[2]" 81;
-IO_PORT "leds[2]" DRIVE=8 IO_TYPE=LVCMOS18;
+IO_PORT "leds[2]" DRIVE=8;
 
 IO_LOC  "leds[1]" 80;
-IO_PORT "leds[1]" DRIVE=8 IO_TYPE=LVCMOS18;
+IO_PORT "leds[1]" DRIVE=8;
 
 IO_LOC  "leds[0]" 79;
-IO_PORT "leds[0]" DRIVE=8 IO_TYPE=LVCMOS18;
+IO_PORT "leds[0]" DRIVE=8;
 
 IO_LOC  "rst" 25;
-IO_PORT "rst" IO_TYPE=LVCMOS33 PULL_MODE=DOWN;
+IO_PORT "rst" PULL_MODE=DOWN;
 
 IO_LOC  "clk" 52;
-IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_PORT "clk" PULL_MODE=UP;
 
 IO_LOC  "tx" 17;
-IO_PORT "tx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_PORT "tx" PULL_MODE=UP;
 
 IO_LOC  "rx" 18;
-IO_PORT "rx" IO_TYPE=LVCMOS33 PULL_MODE=UP;
+IO_PORT "rx" PULL_MODE=UP;

@@ -16,7 +16,7 @@ TESTBENCH = sim/top_tb.sv
 CONSTRAINTS = cst/tangnano9k_constraints.cst
 
 #el top se indica sin la extension .v, esto hace referencia al nombre que le pusieron al módulo y no al archivo en si.
-TOP_DESIGN = top_uart
+TOP_DESIGN = top_final
 TOP_TB     = top_tb
 
 
