@@ -43,7 +43,7 @@ module clock_divider(
     output logic scan_clk
 );
     
-    logic [20:0] clk_div;
+    logic [18:0] clk_div;
 
     always_ff@(posedge clk, posedge rst) begin
         if (rst) begin
@@ -51,7 +51,7 @@ module clock_divider(
             scan_clk <= 0;
         end else begin
             clk_div <= clk_div + 1;
-            if (clk_div == 1080000) begin //Esto resulta en un reloj de escaneo de 25Hz
+            if (clk_div == 270000) begin //Esto resulta en un reloj de escaneo de 100Hz
                 clk_div <= 0;
                 scan_clk <= ~scan_clk; 
             end
@@ -93,8 +93,11 @@ module flip_flop_EN(
         if(rst) begin
             out <= 0;
         end else begin
-            if(ck)
+            if(ck) begin
                 out <= data;
+            end else begin
+                out <= 0;
+            end
         end
     end
 
@@ -115,6 +118,7 @@ module top_module(
 
     //Salidas controladas por la FPGA
     output logic [1:0] count,
+    output logic EN_s,
     output logic out_A,
     output logic out_B, 
     output logic out_C,
@@ -125,7 +129,7 @@ module top_module(
         .clk(clk),
         .rst(rst),
         .EN_b(key), //<- debounce
-        .EN_s(EN_s) //-> counter_2bit
+        .EN_s(EN_s) //-> counter_2bit & Output Data_available 
     );
 
 
