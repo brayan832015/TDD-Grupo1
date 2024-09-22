@@ -126,23 +126,23 @@ module reassign(
 
 always_comb begin
     case (in)
-        4'b0000: out_4bit = 4'b1101;  // 0
-        4'b0001: out_4bit = 4'b0000;  // 1
-        4'b0010: out_4bit = 4'b0001;  // 2
-        4'b0011: out_4bit = 4'b0010;  // 3
-        4'b0100: out_4bit = 4'b0100;  // 4
-        4'b0101: out_4bit = 4'b0101;  // 5
-        4'b0110: out_4bit = 4'b0110;  // 6
-        4'b0111: out_4bit = 4'b1000;  // 7
-        4'b1000: out_4bit = 4'b1001;  // 8
-        4'b1001: out_4bit = 4'b1010;  // 9
-        4'b1010: out_4bit = 4'b0011;  // A
-        4'b1011: out_4bit = 4'b0111;  // B
-        4'b1100: out_4bit = 4'b1011;  // C
-        4'b1101: out_4bit = 4'b1111;  // D
-        4'b1110: out_4bit = 4'b1100;  // *
-        4'b1111: out_4bit = 4'b1110;  // #
-        default: out_4bit = 4'b1101;  // Default 0
+        4'b1101: out_4bit = 4'b0000;  // 0 
+        4'b0000: out_4bit = 4'b0001;  // 1 
+        4'b0001: out_4bit = 4'b0010;  // 2 
+        4'b0010: out_4bit = 4'b0011;  // 3 
+        4'b0100: out_4bit = 4'b0100;  // 4 
+        4'b0101: out_4bit = 4'b0101;  // 5 
+        4'b0110: out_4bit = 4'b0110;  // 6 
+        4'b1000: out_4bit = 4'b0111;  // 7 
+        4'b1001: out_4bit = 4'b1000;  // 8 
+        4'b1010: out_4bit = 4'b1001;  // 9 
+        4'b0011: out_4bit = 4'b1010;  // A 
+        4'b0111: out_4bit = 4'b1011;  // B 
+        4'b1011: out_4bit = 4'b1100;  // C 
+        4'b1111: out_4bit = 4'b1101;  // D 
+        4'b1100: out_4bit = 4'b1110;  // * 
+        4'b1110: out_4bit = 4'b1111;  // # 
+        default: out_4bit = 4'b0000;  
     endcase
 end
 
@@ -189,7 +189,7 @@ module top_module(
         .scan_clk(scan_clk), //<- clock_divider
         .rst(rst),
         .inhibit(EN_s), //<- debounce
-        .count(count) //-> flip_flop_EN
+        .count(count) //-> merge_bits
     );
 
 
@@ -198,13 +198,13 @@ module top_module(
         .bitC(c),
         .bitB(count[1]),
         .bitA(count[0]),
-        .merged_output(merged_output)
+        .merged_output(merged_output) //-> reassign
     );
 
 
     reassign reassign_instance(
-        .in(merged_output),
-        .out_4bit(out_4bit)
+        .in(merged_output), //<- merge_bits
+        .out_4bit(out_4bit) //-> flip_flop_EN
     );
 
 
@@ -228,16 +228,16 @@ module top_module(
         .clk(clk),
         .rst(rst),
         .ck(EN_s), //<- debounce
-        .data(c), //data3 = C
-        .out(out_4bit[2])
+        .data(out_4bit[2]), //data3 = C
+        .out(out_C)
     );
 
     flip_flop_EN flip_flop_EN_inst4(
         .clk(clk),
         .rst(rst),
         .ck(EN_s), //<- debounce
-        .data(d), //data4 = D = msb
-        .out(out_4bit[3])
+        .data(out_4bit[3]), //data4 = D = msb
+        .out(out_D)
     ); 
 
 endmodule
