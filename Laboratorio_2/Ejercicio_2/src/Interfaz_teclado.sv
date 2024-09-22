@@ -151,19 +151,19 @@ endmodule
 
 
 
-//key_detect -> debounce /clock_divider -> counter_2bit /-> Flip_Flop_EN
+//key_detect -> debounce /clock_divider -> counter_2bit -> merge bits -> reassign -> /-> Flip_Flop_EN -> LEDs & Data Available
 
 module top_module(
     //Entradas a la FPGA
     input logic clk,
     input logic rst,
     input logic key, //Input key_detect = EN_b
-    input logic c, //Output C del codificador
-    input logic d, //Output D del codificador msb
+    input logic c,   //Output C del codificador
+    input logic d,   //Output D del codificador msb
 
     //Salidas controladas por la FPGA
     output logic [1:0] count,
-    output logic EN_s, //Se supone que se debe cambiar por "ck"
+    output logic ck,    //~Data_available = ck = EN_s
     output logic out_A,
     output logic out_B, 
     output logic out_C,
@@ -177,8 +177,8 @@ module top_module(
     debounce debounce_instance(
         .clk(clk),
         .rst(rst),
-        .EN_b(key), //<- debounce
-        .EN_s(EN_s) //-> counter_2bit & Output Data_available 
+        .EN_b(key), //<- key_detect
+        .EN_s(EN_s) //-> counter_2bit & flip_flop_EN & Output Data_available 
     );
 
 
@@ -245,5 +245,3 @@ module top_module(
     ); 
 
 endmodule
-
-// Data_available = EN_s = ck
