@@ -113,7 +113,7 @@ module merge_bits(
 );
 
     always_comb begin
-        merged_output = {bitA, bitB, bitC, bitD};
+        merged_output = {bitD, bitC, bitB, bitA};
     end
 
 endmodule
@@ -169,6 +169,10 @@ module top_module(
     output logic out_C,
     output logic out_D
 );
+
+    logic [3:0] merged_output;
+    logic [3:0] out_4bit;
+    logic scan_clk;
 
     debounce debounce_instance(
         .clk(clk),
