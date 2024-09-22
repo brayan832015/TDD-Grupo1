@@ -104,6 +104,51 @@ module flip_flop_EN(
 endmodule
 
 
+module merge_bits(
+    input logic bitD,  // Most significant bit (MSB)
+    input logic bitC,
+    input logic bitB,
+    input logic bitA,  // Least significant bit (LSB)
+    output logic [3:0] merged_output  // 4-bit output
+);
+
+    always_comb begin
+        merged_output = {bitA, bitB, bitC, bitD};
+    end
+
+endmodule
+
+
+module reassign(
+    input logic [3:0] in,   // 4-bit input
+    output logic [3:0] out_4bit  // 4-bit output
+);
+
+always_comb begin
+    case (in)
+        4'b0000: out_4bit = 4'b1101;  // 0
+        4'b0001: out_4bit = 4'b0000;  // 1
+        4'b0010: out_4bit = 4'b0001;  // 2
+        4'b0011: out_4bit = 4'b0010;  // 3
+        4'b0100: out_4bit = 4'b0100;  // 4
+        4'b0101: out_4bit = 4'b0101;  // 5
+        4'b0110: out_4bit = 4'b0110;  // 6
+        4'b0111: out_4bit = 4'b1000;  // 7
+        4'b1000: out_4bit = 4'b1001;  // 8
+        4'b1001: out_4bit = 4'b1010;  // 9
+        4'b1010: out_4bit = 4'b0011;  // A
+        4'b1011: out_4bit = 4'b0111;  // B
+        4'b1100: out_4bit = 4'b1011;  // C
+        4'b1101: out_4bit = 4'b1111;  // D
+        4'b1110: out_4bit = 4'b1100;  // *
+        4'b1111: out_4bit = 4'b1110;  // #
+        default: out_4bit = 4'b1101;  // Default 0
+    endcase
+end
+
+endmodule
+
+
 
 
 //key_detect -> debounce /clock_divider -> counter_2bit /-> Flip_Flop_EN
@@ -118,7 +163,7 @@ module top_module(
 
     //Salidas controladas por la FPGA
     output logic [1:0] count,
-    output logic EN_s,
+    output logic EN_s, //Se supone que se debe cambiar por "ck"
     output logic out_A,
     output logic out_B, 
     output logic out_C,
@@ -148,11 +193,26 @@ module top_module(
     );
 
 
+    merge_bits merge_bits_instance(
+        .bitD(d),
+        .bitC(c),
+        .bitB(count[1]),
+        .bitA(count[0]),
+        .merged_output(merged_output)
+    );
+
+
+    reassign reassign_instance(
+        .in(merged_output),
+        .out_4bit(out_4bit)
+    );
+
+
     flip_flop_EN flip_flop_EN_inst1(
         .clk(clk),
         .rst(rst),
         .ck(EN_s), //<- debounce
-        .data(count[0]), //data1 = A = lsb
+        .data(out_4bit[0]), //data1 = A = lsb
         .out(out_A)
     );
 
@@ -160,7 +220,7 @@ module top_module(
         .clk(clk),
         .rst(rst),
         .ck(EN_s), //<- debounce
-        .data(count[1]), //data2 = B
+        .data(out_4bit[1]), //data2 = B
         .out(out_B)
     );
 
@@ -169,7 +229,7 @@ module top_module(
         .rst(rst),
         .ck(EN_s), //<- debounce
         .data(c), //data3 = C
-        .out(out_C)
+        .out(out_4bit[2])
     );
 
     flip_flop_EN flip_flop_EN_inst4(
@@ -177,9 +237,9 @@ module top_module(
         .rst(rst),
         .ck(EN_s), //<- debounce
         .data(d), //data4 = D = msb
-        .out(out_D)
+        .out(out_4bit[3])
     ); 
 
 endmodule
 
-// Agregar Data_available
+// Data_available = EN_s = ck
