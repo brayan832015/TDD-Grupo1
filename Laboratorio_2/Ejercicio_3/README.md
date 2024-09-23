@@ -24,7 +24,6 @@ https://github.com/user-attachments/assets/377935f2-2519-4580-a7be-7a05c8833ef0
    - Desarrollar un bloque de pruebas que permita:
      - Enviar datos desde el teclado (del ejercicio 2) a una computadora personal.
      - Mostrar en los LEDs los datos recibidos desde la computadora.
-   - La figura 3 ilustra el diagrama de bloques para la prueba física.
 
 5. **Simulación**:
    - Realizar una simulación de integración total que incluya:
@@ -38,3 +37,5 @@ https://github.com/user-attachments/assets/377935f2-2519-4580-a7be-7a05c8833ef0
 - `sim/` - Contiene el archivo para la simulación.
 - `cst` - Archivo para la asignación de señales en la FPGA.
 - `UART` - Contiene el módulo UART del repositorio y las simulaciones para comprobar su funcionamiento.
+- `top_rx_solo` - Contiene una implementación funcional únicamente de RX en la FPGA.
+- `top_tx_solo` - Contiene una implementación funcional únicamente de TX en la FPGA.
