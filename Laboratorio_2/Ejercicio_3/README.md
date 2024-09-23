@@ -2,6 +2,12 @@
 
 Este ejercicio se enfoca en el desarrollo e implementación de una interfaz UART (Universal Asynchronous Receiver/Transmitter) en FPGA. 
 
+
+
+https://github.com/user-attachments/assets/377935f2-2519-4580-a7be-7a05c8833ef0
+
+
+
 ## Requisitos
 
 1. **Implementación UART**:
