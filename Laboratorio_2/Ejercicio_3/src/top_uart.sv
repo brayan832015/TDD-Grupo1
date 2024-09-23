@@ -10,56 +10,69 @@ module top_uart (
 
     logic [7:0] data_rx, data_tx;
     logic WR2c, transmit;
+    logic busy;  
+    logic [1:0] wait_counter;  
 
     // Instancias
     uart_rx uart_rx_inst (.clk(clk), .rst(rst), .rx(rx), .data_rx(data_rx), .WR2c(WR2c), .WR2d(WR2d), .hold_ctrl(hold_ctrl));
 
-    uart_tx uart_tx_inst (.clk(clk), .rst(rst), .data_tx(data_tx), .transmit(transmit), .tx(tx));
+    uart_tx uart_tx_inst (.clk(clk), .rst(rst), .data_tx(data_tx), .transmit(transmit), .tx(tx), .busy(busy));
 
     // Estados
-    typedef enum logic [1:0] {esperar, transmitir, recibir} estados;
+    typedef enum logic [1:0] {esperar, esperar_delay, transmitir, recibir} estados;  
     estados estado, sig_estado;
 
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
             estado <= esperar;
-            leds <= 8'hFF;         //leds apagados (encienden con '0')
-        end 
-        else begin
+            leds <= 8'hFF;   // LEDs apagados (active low)
+            wait_counter <= 0;  
+        end else begin
             estado <= sig_estado;
+
             if (estado == recibir) begin
                 leds <= ~data_rx;
+            end
+
+            if (estado == esperar_delay && wait_counter != 2'b10) begin
+                wait_counter <= wait_counter + 1;  
+            end else begin
+                wait_counter <= 0;  
             end
         end
     end
 
     always_comb begin
         sig_estado = estado;
-        transmit = 0;
+        transmit = 0; 
         case (estado)
             esperar: begin
-                if (WR2c) begin                 // caracter válido (laptop)
+                if (WR2c) begin  // Tecla laptop
                     sig_estado = recibir;   
-                end
-                else if (key_detect) begin      // teclado presionado (4x4)
-                    sig_estado = transmitir;
+                end else if (key_detect && !busy) begin  // Key detect y TX no está usandose
+                    sig_estado = esperar_delay;  
                 end 
             end
             
+            esperar_delay: begin
+                if (wait_counter == 2'b10) begin  // Espera dos ciclos para que los flip-flop carguen el valor en la salida
+                    sig_estado = transmitir;  
+                end else begin
+                    sig_estado = esperar_delay; 
+                end
+            end
+
             transmitir: begin
-                transmit = 1;
+                transmit = 1; 
                 sig_estado = esperar;
             end
             
             recibir: begin
                 sig_estado = esperar;
             end
-
-            
         endcase
     end
 
-    // Decodificación del teclado 4x4
     always_comb begin
         case (teclado)
             4'b0000: data_tx = 8'h30; // '0'
@@ -82,10 +95,7 @@ module top_uart (
         endcase
     end
 
-
 endmodule
-
-
 
 //Key_bounce_elimination
 module debounce(
@@ -184,8 +194,6 @@ module flip_flop_EN(
         end else begin
             if(ck) begin
                 out <= data;
-            end else begin
-                out <= 0;
             end
         end
     end
@@ -350,14 +358,20 @@ module top_final(
 );
 
     // Señales internas
-    logic EN_s;           // Salida estabilizada del debounce
+    logic EN_s;              // Salida estabilizada del debounce
     logic out_A, out_B, out_C, out_D; // Salidas de los flip-flops (A = LSB, D = MSB)
-    logic [3:0] teclado;  // Entrada de teclado de 4 bits para UART
-    logic key_detect;     // Señal de detección de tecla estabilizada
+    logic [3:0] teclado;     // Entrada de teclado de 4 bits para UART
+    logic key_detect_reg; 
+    logic [23:0] temporizador_activo;   // Temporizador key_detect activo
+    logic [23:0] temporizador_deshabilitado; // Temporizador reactivar key_detect
+    logic en_espera;       // Indica si hay espera en la transmisión
 
-    // Conexión de la señal de teclado (de top_module) al UART
-    assign teclado = {out_D, out_C, out_B, out_A}; // out_D = MSB, out_A = LSB
-    assign key_detect = EN_s; // EN_s del debounce pasa a ser key_detect del UART
+    // Parámetros para la duración de los pulsos
+    parameter tiempo_activo = 27000;     // Duración key_detect activo
+    parameter tiempo_desabilitado = 27000000;  // Duración reactivar key_detect si se solicita de nuevo
+
+    assign teclado = {out_D, out_C, out_B, out_A}; 
+    assign key_detect = key_detect_reg;  
 
     // Instancia del módulo top_module (debounce, flip-flops, etc.)
     top_module top_instance (
@@ -380,9 +394,44 @@ module top_final(
         .rst(rst),
         .rx(rx),
         .tx(tx),
-        .teclado(teclado),       // Entradas del teclado desde top_module
-        .key_detect(key_detect), // Señal estabilizada desde debounce
-        .leds(leds)              // Control de LEDs desde UART
+        .teclado(teclado),       
+        .key_detect(key_detect), 
+        .leds(leds)              
     );
 
+    // Control key_detect
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) begin
+            key_detect_reg <= 0;
+            temporizador_activo <= 0;
+            temporizador_deshabilitado <= 0;
+            en_espera <= 0;
+        end else begin
+            if (en_espera) begin
+                if (temporizador_deshabilitado > 0) begin
+                    temporizador_deshabilitado <= temporizador_deshabilitado - 1;
+                end else begin
+                    en_espera <= 0;
+                end
+            end
+
+            // Verificar si EN_s se activa y los tiempos de espera y activación
+            if (EN_s && !en_espera && temporizador_activo == 0) begin
+                key_detect_reg <= 1;         // Activa key_detect
+                temporizador_activo <= tiempo_activo;
+            end
+
+            // key_detect_reg activo por tiempo_activo
+            if (temporizador_activo > 0) begin
+                temporizador_activo <= temporizador_activo - 1;
+                if (temporizador_activo == 1) begin
+                    key_detect_reg <= 0;       // Desactiva key_detect cuando llega a tiempo_activo
+                    temporizador_deshabilitado <= tiempo_desabilitado; // Desabilita key_detect por tiempo_desabilitado
+                    en_espera <= 1;
+                end
+            end
+        end
+    end
+
 endmodule
+
