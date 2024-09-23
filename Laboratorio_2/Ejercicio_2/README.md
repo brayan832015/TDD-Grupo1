@@ -2,6 +2,12 @@
 
 Este ejercicio se enfoca en el diseño e implementación de una interfaz de teclado hexadecimal utilizando SystemVerilog. 
 
+
+https://github.com/user-attachments/assets/9b349777-de13-4c80-aa1f-ef3f8f890bbf
+
+
+
+
 ## Requisitos
 
 1. **Análisis de Bloques**:
