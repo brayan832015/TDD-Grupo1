@@ -24,21 +24,21 @@ all: synth pnr bitstream
 
 # Synthesis
 synth: ${SOURCES}
-	@echo "Ejecutando la sintesis..."
-	@yosys -p "read_verilog -sv ${SOURCES}; synth_gowin -top ${TOP_DESIGN} -json ${PROYECT}.json" > synthesis_${BOARD}.log 2>&1 
-	@echo "COMPLETADO"
+	echo "Ejecutando la sintesis..."
+	yosys -p "read_verilog -sv ${SOURCES}; synth_gowin -top ${TOP_DESIGN} -json ${PROYECT}.json" > synthesis_${BOARD}.log 2>&1 
+	echo "COMPLETADO"
 
 # Place and Route
 pnr: ${PROYECT}.json
-	@echo "Ejecutando el pnr..."
-	@nextpnr-gowin --json ${PROYECT}.json --write ${PROYECT}_pnr.json --freq 27 --device ${DEVICE} --family ${FAMILY} --cst ${CONSTRAINTS} > pnr_${BOARD}.log 2>&1 
-	@echo "COMPLETADO"
+	echo "Ejecutando el pnr..."
+	nextpnr-gowin --json ${PROYECT}.json --write ${PROYECT}_pnr.json --freq 27 --device ${DEVICE} --family ${FAMILY} --cst ${CONSTRAINTS} > pnr_${BOARD}.log 2>&1 
+	echo "COMPLETADO"
 
 # Generar el Bitstream
 bitstream: ${PROYECT}_pnr.json
-	@echo "Generando ${PROYECT}_${BOARD}.fs"
-	@gowin_pack -d ${FAMILY} -o ${PROYECT}_${BOARD}.fs ${PROYECT}_pnr.json
-	@echo "COMPLETADO"
+	echo "Generando ${PROYECT}_${BOARD}.fs"
+	gowin_pack -d ${FAMILY} -o ${PROYECT}_${BOARD}.fs ${PROYECT}_pnr.json
+	echo "COMPLETADO"
 		
 #Simulación con DSim
 test: 
