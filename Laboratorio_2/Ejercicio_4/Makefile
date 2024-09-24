@@ -25,7 +25,7 @@ all: synth pnr bitstream
 # Synthesis
 synth: ${SOURCES}
 	echo "Ejecutando la sintesis..."
-	yosys -p "read_verilog -sv ${SOURCES}; synth_gowin -top ${TOP_DESIGN} -json ${PROYECT}.json" > synthesis_${BOARD}.log 2>&1 
+	yosys -p "read_verilog -v ${SOURCES}; synth_gowin -top ${TOP_DESIGN} -json ${PROYECT}.json" > synthesis_${BOARD}.log 2>&1 
 	echo "COMPLETADO"
 
 # Place and Route
