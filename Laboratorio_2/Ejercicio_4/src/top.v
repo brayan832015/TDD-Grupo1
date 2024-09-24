@@ -1,4 +1,4 @@
-module top (
+module top(
     input wire clk,            // Reloj principal
     input wire reset,          // Señal de reset global
     input wire rx,             // Línea de recepción UART
@@ -24,7 +24,7 @@ module top (
     wire draw_done;
 
     // UART RX para recibir configuraciones desde la laptop
-    uart_rx(
+    uart_rx uart_rx_inst (
         .clk(clk),
         .reset(reset),
         .rx(rx),
@@ -33,7 +33,7 @@ module top (
     );
 
     // Control de configuración de color basado en la entrada UART
-    color_control(
+    color_control color_control_inst (
         .clk(clk),
         .reset(reset),
         .uart_data(uart_data),
@@ -43,7 +43,7 @@ module top (
     );
 
     // Lógica de dibujo de la grilla en la pantalla LCD
-    lcd_draw lcd(
+    lcd_draw lcd_draw_inst (
         .clk(clk),
         .reset(reset),
         .draw_en(draw_en),
@@ -57,7 +57,7 @@ module top (
     );
 
     // Controlador SPI maestro
-    spi_master(
+    spi_master spi_master_inst (
         .clk(clk),
         .reset(reset),
         .spi_start(spi_start),
