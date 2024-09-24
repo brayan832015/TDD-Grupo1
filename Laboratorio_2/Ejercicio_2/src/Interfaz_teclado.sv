@@ -82,23 +82,17 @@ endmodule
 
 
 module flip_flop_EN(
-    input logic clk,
-    input logic rst,
     input logic ck, //(normalmente 0) data_available de Key_bounce_elimination (EN_s)
+    input logic rst, 
     input logic data,
     output logic out
 );
 
-    always_ff@(posedge clk, posedge rst) begin
-        if(rst) begin
+    always_ff@(posedge ck, posedge rst) begin
+        if(rst)
             out <= 0;
-        end else begin
-            if(ck) begin
-                out <= data;
-            end else begin
-                out <= 0;
-            end
-        end
+        else
+            out <= data;
     end
 
 endmodule
@@ -163,7 +157,7 @@ module top_module(
 
     //Salidas controladas por la FPGA
     output logic [1:0] count,
-    output logic ck,    //~Data_available = ck = EN_s
+    output logic EN_s,    //~Data_available = ck = EN_s
     output logic out_A,
     output logic out_B, 
     output logic out_C,
@@ -213,33 +207,29 @@ module top_module(
 
 
     flip_flop_EN flip_flop_EN_inst1(
-        .clk(clk),
-        .rst(rst),
         .ck(EN_s), //<- debounce
+        .rst(rst),
         .data(out_4bit[0]), //data1 = A = lsb
         .out(out_A)
     );
 
     flip_flop_EN flip_flop_EN_inst2(
-        .clk(clk),
-        .rst(rst),
         .ck(EN_s), //<- debounce
+        .rst(rst),
         .data(out_4bit[1]), //data2 = B
         .out(out_B)
     );
 
     flip_flop_EN flip_flop_EN_inst3(
-        .clk(clk),
-        .rst(rst),
         .ck(EN_s), //<- debounce
+        .rst(rst),
         .data(out_4bit[2]), //data3 = C
         .out(out_C)
     );
 
     flip_flop_EN flip_flop_EN_inst4(
-        .clk(clk),
-        .rst(rst),
         .ck(EN_s), //<- debounce
+        .rst(rst),
         .data(out_4bit[3]), //data4 = D = msb
         .out(out_D)
     ); 
