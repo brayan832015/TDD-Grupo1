@@ -4,7 +4,7 @@ module top(
     input wire rx,             // Línea de recepción UART
     output wire spi_sclk,      // Señal de reloj SPI
     output wire spi_mosi,      // Línea de datos MOSI SPI
-    output wire spi_cs,        // Chip select de SPI
+    output wire chip_select,        // Chip select de SPI
     output wire [7:0] leds     // Indicadores LED
 );
 
@@ -66,7 +66,7 @@ module top(
         .spi_ready(spi_ready),
         .spi_sclk(spi_sclk),
         .spi_mosi(spi_mosi),
-        .spi_cs(spi_cs)
+        .chip_select(chip_select)
     );
 
     // Indicadores LED para debug o estados
