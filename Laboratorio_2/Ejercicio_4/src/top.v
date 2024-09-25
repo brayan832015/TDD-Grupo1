@@ -1,75 +1,83 @@
-module top(
-    input wire clk,            // Reloj principal
-    input wire reset,          // Señal de reset global
-    input wire rx,             // Línea de recepción UART
-    output wire spi_sclk,      // Señal de reloj SPI
-    output wire spi_mosi,      // Línea de datos MOSI SPI
-    output wire chip_select,        // Chip select de SPI
-    output wire [7:0] leds     // Indicadores LED
+module top (
+    input wire clk,                // Reloj del sistema (27M)
+    input wire reset,              // Reset activo alto
+    input wire toggle_color,       // Señal para alternar el patrón de color
+    input wire ser_rx,             // Serial receive
+    output wire ser_tx,            // Serial transmit
+    output wire lcd_resetn,        // LCD reset (activa baja)
+    output wire lcd_clk,           // LCD clock
+    output wire lcd_cs,            // LCD chip select
+    output wire lcd_rs,            // LCD register select
+    output wire lcd_data,          // LCD data
+    output reg [23:0] color_p1,    // Color 1
+    output reg [23:0] color_p2     // Color 2
 );
 
-    // Señales para UART
-    wire [7:0] uart_data;
-    wire uart_valid;
+    // Señales intermedias
+    wire [7:0] command;            // Comando de inicialización
+    wire start_init;               // Señal de inicio de inicialización
+    wire init_done;                // Señal de inicialización completada
+    wire start_spi;                // Señal para comenzar la transmisión SPI
+    wire [7:0] data_in;            // Datos a enviar a través de SPI
+    wire spi_done;                 // Indica que la transmisión SPI está completa
+    wire [7:0] data_rx;            // Datos recibidos a través de UART
+    wire valid_data;               // Indica datos válidos recibidos
+    wire data_ready;               // Indica que se ha recibido un dato completo
 
-    // Señales para el controlador SPI
-    wire spi_ready;
-    wire spi_start;
-    wire [7:0] spi_data;
-    wire [1:0] spi_cmd;
-
-    // Señales para la lógica de la pantalla
-    wire draw_en;
-    wire [23:0] color_config;
-    wire draw_done;
-
-    // UART RX para recibir configuraciones desde la laptop
-    uart_rx uart_rx_inst (
+    // Instanciación del módulo color_control
+    color_control color_ctrl (
         .clk(clk),
         .reset(reset),
-        .rx(rx),
-        .data_out(uart_data),
-        .data_valid(uart_valid)
+        .toggle_color(toggle_color),
+        .color_p1(color_p1),
+        .color_p2(color_p2)
     );
 
-    // Control de configuración de color basado en la entrada UART
-    color_control color_control_inst (
+    // Instanciación del módulo lcd_init
+    lcd_init lcd_init_inst (
         .clk(clk),
         .reset(reset),
-        .uart_data(uart_data),
-        .uart_valid(uart_valid),
-        .color_config(color_config),
-        .draw_en(draw_en)
+        .command(command),
+        .start_init(start_init),
+        .init_done(init_done)
     );
 
-    // Lógica de dibujo de la grilla en la pantalla LCD
+    // Instanciación del módulo lcd_draw
     lcd_draw lcd_draw_inst (
         .clk(clk),
-        .reset(reset),
-        .draw_en(draw_en),
-        .color_config(color_config),
-        .grid_command(),       // No conectado en esta implementación
-        .done(draw_done),
-        .spi_start(spi_start),
-        .spi_data(spi_data),
-        .spi_cmd(spi_cmd),
-        .spi_ready(spi_ready)
+        .resetn(~reset),           // Invertir reset para lcd_draw
+        .ser_tx(ser_tx),
+        .ser_rx(ser_rx),
+        .lcd_resetn(lcd_resetn),
+        .lcd_clk(lcd_clk),
+        .lcd_cs(lcd_cs),
+        .lcd_rs(lcd_rs),
+        .lcd_data(lcd_data)
     );
 
-    // Controlador SPI maestro
+    // Instanciación del módulo spi_master
     spi_master spi_master_inst (
         .clk(clk),
         .reset(reset),
-        .spi_start(spi_start),
-        .spi_data(spi_data),
-        .spi_cmd(spi_cmd),
-        .spi_ready(spi_ready),
-        .spi_sclk(spi_sclk),
-        .spi_mosi(spi_mosi),
-        .chip_select(chip_select)
+        .start(start_spi),
+        .data_in(data_in),
+        .spi_clk(lcd_clk),       // Usar el mismo reloj para SPI
+        .spi_mosi(lcd_data),     // Utilizando el puerto de datos de LCD como MOSI
+        .spi_miso(1'b0),         // No se utiliza, pero se conecta a 0
+        .chip_select(lcd_cs),    // Chip select de SPI
+        .done(spi_done)          // Indica que la transmisión ha terminado
     );
 
-    // Indicadores LED para debug o estados
-    assign leds[7:0] = {draw_done, uart_valid, 6'b0}; // Indicadores simples de estado
+    // Instanciación del módulo uart_rx
+    uart_rx uart_rx_inst (
+        .clk(clk),
+        .rst(reset),
+        .rx(ser_rx),
+        .data_rx(data_rx),
+        .valid_data(valid_data),
+        .data_ready(data_ready)
+    );
+
+    // Lógica adicional para gestionar señales entre módulos, si es necesario
 
 endmodule
