@@ -121,11 +121,9 @@ reg lcd_rs_r;
 reg lcd_reset_r;
 reg [7:0] spi_data;
 
-assign lcd_resetn = lcd_reset_r;
-assign lcd_clk    = ~clk;
-assign lcd_cs     = lcd_cs_r;
-assign lcd_rs     = lcd_rs_r;
-assign lcd_data   = spi_data[7]; // MSB of SPI data
+//assign lcd_resetn = lcd_reset_r;
+//assign lcd_rs     = lcd_rs_r;
+//assign lcd_data   = spi_data[7]; // MSB of SPI data
 
 // Colors: P1 (Green) and P2 (Blue) for alternating columns
 wire [15:0] P1 = 16'h07E0; // Green
