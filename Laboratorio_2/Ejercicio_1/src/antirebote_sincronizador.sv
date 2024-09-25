@@ -1,23 +1,29 @@
 module Contador(
     input logic clk,
-    input logic rst_n,
+    input logic rst,
     input logic EN_s,        //Entrada Enable estabilizada
-    output logic [7:0] conta //8-bit counter output
+    output logic [5:0] conta //6-bit counter output (onboard FPGA LEDs)
 );
 
-    always_ff@(posedge clk, posedge rst_n) begin
-        if (!rst_n)
-            conta <= 0;  
-        else if (EN_s)
-            conta <= conta + 1;
+    logic EN_s_prev;
+
+    always_ff@(posedge clk, posedge rst) begin
+        if (rst) begin
+            conta <= 0;
+            EN_s_prev <= 0;
+        end else begin
+            if (EN_s && !EN_s_prev)
+                conta <= conta + 1;
+            EN_s_prev = EN_s;
+        end
     end
 
 endmodule
 
 
-module debounce (
+module debounce(
     input logic clk,
-    input logic rst_n,
+    input logic rst,
     input logic EN_b, //Entrada del botón con rebotes
     output logic EN_s //Salida estabilizada (sin rebotes)
 );
@@ -27,8 +33,8 @@ module debounce (
     logic [15:0] counter; //Contador para medir el tiempo de debounce
     logic EN_sync;        //Señal sincronizada al reloj
 
-    always_ff@(posedge clk, posedge rst_n) begin
-        if (!rst_n) begin
+    always_ff@(posedge clk, posedge rst) begin
+        if (rst) begin
             EN_sync <= 0;
             EN_s <= 0;
             counter <= 0;
@@ -56,9 +62,9 @@ endmodule
 
 module top_module (
     input logic clk,
-    input logic rst_n,
+    input logic rst,
     input logic EN_b,        //Entrada con rebotes
-    output logic [7:0] conta //Contador de salida
+    output logic [5:0] conta //Contador de salida
 );
 
     logic EN_s; //Señal estabilizada
@@ -66,7 +72,7 @@ module top_module (
     //Iniciar modulo de debounce
     debounce debounce_instance (
         .clk(clk),
-        .rst_n(rst_n),
+        .rst(rst),
         .EN_b(EN_b),
         .EN_s(EN_s)
     );
@@ -74,7 +80,7 @@ module top_module (
     //Iniciar modulo contador
     Contador contador_instance (
         .clk(clk),
-        .rst_n(rst_n),
+        .rst(rst),
         .EN_s(EN_s),  //Se usa la señal estable para contar
         .conta(conta)
     );

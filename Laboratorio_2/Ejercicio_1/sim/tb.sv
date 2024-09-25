@@ -1,52 +1,70 @@
-module tb_top_module;
+module top_debounce_tb();
 
   logic clk;
-  logic rst_n;
+  logic rst;
   logic EN_b;
   logic [7:0] conta;
 
   // Instantiate the top module
   top_module dut (
     .clk(clk),
-    .rst_n(rst_n),
+    .rst(rst),
     .EN_b(EN_b),
     .conta(conta)
   );
 
-  // Clock generation (50 MHz for example)
-  always #10 clk = ~clk; // 20ns period -> 50 MHz
+  always #18 clk = ~clk;
 
-  // Initialize signals
   initial begin
     clk = 0;
-    rst_n = 0;
+    rst = 1;
     EN_b = 0;
-    #100;                // Wait 100ns to reset the circuit
-    rst_n = 1;
+
+    #100 rst = 0;  
     
-    // Simulate button press with bounce
-    bounce_button();
-    
-    #1000 $finish;       // End simulation after 1000ns
-  end
+    #5000000 EN_b = 1; //5 ms
 
-  // Task to simulate button bouncing and pressing for 2ms
-  task bounce_button();
-    integer i;
-    // Simulate bounces: quickly toggle EN_b between 0 and 1
-    for (i = 0; i < 10; i = i + 1) begin
-      EN_b = ~EN_b;
-      #50;               // 50ns bounce period
-    end
-    // Stable press for 2ms
-    EN_b = 1;
-    #2000000;            // 2ms stable press
-    EN_b = 0;
-  end
+    #5000000 EN_b = 0;
+    //10ms inactivo en 0
+    #10000000 EN_b = 1;
+    //1ms activo
+    #1000000 EN_b = 0;
+    //10ms inactivo en 0
+    #10000000 EN_b = 1;
+    //Rebotes al presionar
+    #1000000 EN_b = 0;
 
-  // Monitor the count
-  initial begin
-    $monitor("Time = %0t, conta = %0d", $time, conta);
-  end
+    #1000000 EN_b = 1;
 
+    #1000000 EN_b = 0;
+
+    #1000000 EN_b = 1;
+
+    #1000000 EN_b = 0;
+
+    #1000000 EN_b = 1;
+    //5ms activo en 1
+    #5000000 EN_b = 0;
+    //Rebotes al dejar de presionar
+    #1000000 EN_b = 1;
+
+    #1000000 EN_b = 0;
+
+    #1000000 EN_b = 1;
+
+    #1000000 EN_b = 0;
+
+    #1000000 EN_b = 1;
+
+    #1000000 EN_b = 0;
+    //10ms inactivo
+    #10000000 EN_b = 1;
+    //1ms activo
+    #1000000 EN_b = 0;        
+
+    //50ms inactivo
+    #25000000 $finish;
+
+  end
+  
 endmodule
