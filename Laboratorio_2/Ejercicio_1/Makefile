@@ -9,7 +9,7 @@ PROYECT = antirebote_sincronizador
 SOURCES := $(wildcard src/*.v src/*.sv) #Todas las fuentes .v o .sv que estan en src
 
 #Fuente de simulacion
-TESTBENCH = sim/tb.v
+TESTBENCH = sim/tb.sv
 
 # Constraints para el proyecto
 #aca va el archivo de constraints del proyecto
