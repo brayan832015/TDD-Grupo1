@@ -5,15 +5,18 @@ module Contador(
     output logic [5:0] conta //6-bit counter output (onboard FPGA LEDs)
 );
 
+    
+    logic [5:0] inv_conta = 6'b000000;
     logic EN_s_prev;
 
     always_ff@(posedge clk, posedge rst) begin
         if (rst) begin
-            conta <= 0;
+            inv_conta <= 0;
             EN_s_prev <= 0;
         end else begin
             if (EN_s && !EN_s_prev)
-                conta <= conta + 1;
+                inv_conta <= inv_conta + 1;
+                conta = ~inv_conta;
             EN_s_prev = EN_s;
         end
     end
