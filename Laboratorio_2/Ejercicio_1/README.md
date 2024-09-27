@@ -2,6 +2,12 @@
 
 Este ejercicio implementa un sistema en SystemVerilog para eliminar rebotes y sincronizar entradas de pulsadores e interruptores, con un contador sincronizado y un testbench para verificar su funcionamiento.
 
+
+
+https://github.com/user-attachments/assets/ba4c1b83-de5c-42a3-af68-2ad3a98ce1f7
+
+
+
 ## Requisitos
 
 1. **Bloques Digitales**:
