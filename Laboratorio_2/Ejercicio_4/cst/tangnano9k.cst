@@ -23,7 +23,7 @@ IO_LOC  "ser_rx" 18;
 IO_PORT "ser_rx" PULL_MODE=DOWN;
 
 IO_LOC  "clk" 52;
-IO_PORT "clk" PULL_MODE=DOWN;
+IO_PORT "clk" PULL_MODE=UP;
 
 IO_LOC  "resetn" 4;
 IO_PORT "resetn" PULL_MODE=DOWN;
