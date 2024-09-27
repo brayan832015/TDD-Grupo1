@@ -1,18 +1,20 @@
 module lcd_init (
-    input wire clk,
-    input wire reset,
-    output reg [7:0] command,
-    output reg start_init,
-    input wire init_done
+    input logic clk,
+    input logic resetn,          // Reset activo bajo
+    output logic [7:0] command,
+    output logic start_init,
+    input logic init_done
 );
-    // Lógica para la inicialización de la pantalla LCD
-    parameter INIT_STATE = 0, COMMAND1 = 1, COMMAND2 = 2;
-    reg [1:0] state;
 
-    always @(posedge clk or posedge reset) begin
-        if (reset) begin
+    // Lógica para la inicialización de la pantalla LCD
+    typedef enum logic [1:0] {INIT_STATE, COMMAND1, COMMAND2} state_t;
+
+    state_t state;
+
+    always_ff @(posedge clk or negedge resetn) begin
+        if (!resetn) begin
             state <= INIT_STATE;
-            command <= 0;
+            command <= 8'b0;
             start_init <= 0;
         end else begin
             case (state)
@@ -35,4 +37,5 @@ module lcd_init (
             endcase
         end
     end
+
 endmodule

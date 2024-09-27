@@ -1,11 +1,11 @@
-module uart_rx(
+module uart_rx (
     input logic clk,
-    input logic rst,
+    input logic resetn,  // Reset activo en bajo
     input logic rx,
     output logic [7:0] data_rx,  // Datos recibidos
     output logic valid_data,     // Indica cuando los datos son válidos
     output logic data_ready      // Indica que se ha recibido un dato completo
-    );
+);
 
     // Variables internas
     logic shift;
@@ -15,20 +15,20 @@ module uart_rx(
     logic [13:0] baudrate_counter;
     logic [9:0] rxshift_reg;
     logic clear_bitcounter, inc_bitcounter, inc_samplecounter, clear_samplecounter;
-    
+
     // Constantes
-    parameter clk_freq = 27000000;
-    parameter baud_rate = 9600;
-    parameter div_sample = 4;
-    parameter div_counter = clk_freq / (baud_rate * div_sample);
-    parameter mid_sample = div_sample / 2;
-    parameter div_bit = 10;
+    parameter int clk_freq = 27000000;
+    parameter int baud_rate = 9600;
+    parameter int div_sample = 4;
+    parameter int div_counter = clk_freq / (baud_rate * div_sample);
+    parameter int mid_sample = div_sample / 2;
+    parameter int div_bit = 10;
 
     assign data_rx = rxshift_reg[8:1];
 
     // Lógica de recepción UART
-    always @(posedge clk) begin
-        if (rst) begin
+    always_ff @(posedge clk) begin
+        if (!resetn) begin
             state <= 0;
             bit_counter <= 0;
             baudrate_counter <= 0;
@@ -53,7 +53,7 @@ module uart_rx(
     end
 
     // Máquina de estados
-    always @(posedge clk) begin
+    always_ff @(posedge clk) begin
         shift <= 0;
         clear_samplecounter <= 0;
         inc_samplecounter <= 0;
