@@ -1,5 +1,8 @@
+IO_LOC  "reset" 25;
+IO_PORT "reset" PULL_MODE=DOWN;
+
 IO_LOC  "lcd_resetn" 47;
-IO_PORT "lcd_resetn" PULL_MODE=UP;
+IO_PORT "lcd_resetn" PULL_MODE=DOWN;
 
 IO_LOC  "lcd_clk" 76;
 IO_PORT "lcd_clk" PULL_MODE=UP;
@@ -23,4 +26,4 @@ IO_LOC  "clk" 52;
 IO_PORT "clk" PULL_MODE=UP;
 
 IO_LOC  "resetn" 4;
-IO_PORT "resetn" PULL_MODE=UP;
+IO_PORT "resetn" PULL_MODE=DOWN;
