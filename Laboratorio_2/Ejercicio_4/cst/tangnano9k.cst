@@ -1,29 +1,26 @@
-IO_LOC  "reset" 25;
-IO_PORT "reset" PULL_MODE=DOWN;
-
 IO_LOC  "lcd_resetn" 47;
-IO_PORT "lcd_resetn" PULL_MODE=DOWN;
+IO_PORT "lcd_resetn" PULL_MODE=UP;
 
 IO_LOC  "lcd_clk" 76;
-IO_PORT "lcd_clk" PULL_MODE=DOWN;
+IO_PORT "lcd_clk" PULL_MODE=UP;
 
 IO_LOC  "lcd_cs" 48;
-IO_PORT "lcd_cs" PULL_MODE=DOWN;
+IO_PORT "lcd_cs" PULL_MODE=UP;
 
 IO_LOC  "lcd_rs" 49;
-IO_PORT "lcd_rs" PULL_MODE=DOWN;
+IO_PORT "lcd_rs" PULL_MODE=UP;
 
 IO_LOC  "lcd_data" 77;
-IO_PORT "lcd_data" PULL_MODE=DOWN;
+IO_PORT "lcd_data" PULL_MODE=UP;
 
 IO_LOC  "ser_tx" 17;
-IO_PORT "ser_tx" PULL_MODE=DOWN;
+IO_PORT "ser_tx" PULL_MODE=UP;
 
 IO_LOC  "ser_rx" 18;
-IO_PORT "ser_rx" PULL_MODE=DOWN;
+IO_PORT "ser_rx" PULL_MODE=UP;
 
 IO_LOC  "clk" 52;
 IO_PORT "clk" PULL_MODE=UP;
 
 IO_LOC  "resetn" 4;
-IO_PORT "resetn" PULL_MODE=DOWN;
+IO_PORT "resetn" PULL_MODE=UP;
