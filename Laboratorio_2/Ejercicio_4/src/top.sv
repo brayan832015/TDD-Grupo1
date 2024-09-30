@@ -1,3 +1,4 @@
+
 module top(
     input logic clk,       // 27 MHz clock
     input logic resetn,   
@@ -118,20 +119,26 @@ assign lcd_cs     = lcd_cs_r;
 assign lcd_rs     = lcd_rs_r;
 assign lcd_data   = spi_data[7]; // MSB
 
-always_ff @(posedge clk or negedge resetn) begin
-    if (~resetn) begin
-        toggle_color <= 0;
-    end else if (init_state == INIT_DONE) begin
-        if (col == 29 || col == 59 || col == 89 || col == 119 || col == 149 || col == 179 || col == 209 || col == 239) begin
-            toggle_color <= ~toggle_color;
-        end
-    end
-end
+// Instancia del UART para el teclado 
+uart_rx uart_rx_inst (
+    .clk(clk),
+    .resetn(resetn),
+    .rx(rx),
+    .data_rx(data_rx), // teclado para color
+    .valid_data(valid_data),
+    .data_ready(data_ready)
+);
 
-logic [15:0] pixel;
-always_comb begin
-    pixel = toggle_color ? 16'hF800 : 16'h001F;
-end
+// Instancia del cambio de control
+color_control color_control_inst (
+    .clk(clk),
+    .resetn(resetn),
+    .config_select(data_rx), // variable de entrada del teclado con el UART
+    .col(col), // Salida del color al SPI
+    .init_state(init_state), //............Revisar con SPI luego...........
+    .pixel(pixel)
+);
+
 
 always_ff @(posedge clk or negedge resetn) begin
     if (~resetn) begin
