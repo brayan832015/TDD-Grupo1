@@ -1,9 +1,8 @@
-
 module top(
-    input logic clk,       // 27 MHz clock
-    input logic resetn,   
-    output logic ser_tx,
-    input logic ser_rx,
+    input logic clk,          
+    input logic resetn,       // Reset activo en bajo
+    input logic ser_rx,       
+    output logic ser_tx,      
     output logic lcd_resetn,
     output logic lcd_clk,
     output logic lcd_cs,
@@ -11,8 +10,43 @@ module top(
     output logic lcd_data
 );
 
+// Módulo UART para recibir datos
+logic [7:0] uart_data;        
+logic uart_data_ready;        
+logic uart_data_valid;        
+
+uart_rx uart_inst (
+    .clk(clk),
+    .rst(~resetn),
+    .rx(ser_rx),
+    .data_rx(uart_data),
+    .WR2c(uart_data_ready)
+);
+
+// Variables internas
 localparam MAX_CMDS = 69;
 logic [8:0] init_cmd[MAX_CMDS:0];
+logic [15:0] P1;           // Color1 puede ser rojo, verde o blanco
+logic [15:0] P2;           // Color2 puede ser azul o blanco
+logic toggle_color;
+logic [15:0] pixel;
+logic use_red, use_green;      // Control para seleccionar rojo, verde o blanco
+logic lcd_cs_r, lcd_rs_r, lcd_reset_r;
+logic [7:0] spi_data;
+logic [31:0] clk_cnt;
+logic [6:0] cmd_index;
+logic [4:0] bit_loop;
+logic [7:0] row, col;
+logic [3:0] init_state;
+
+// Asignaciones
+assign lcd_resetn = lcd_reset_r;
+assign lcd_clk = ~clk;         // Clock de la pantalla LCD
+assign lcd_cs = lcd_cs_r;
+assign lcd_rs = lcd_rs_r;
+assign lcd_data = spi_data[7]; // MSB del dato SPI
+
+// Inicialización de comandos de la pantalla LCD (ST7789V)
 assign init_cmd[ 0] = 9'h036;
 assign init_cmd[ 1] = 9'h170;
 assign init_cmd[ 2] = 9'h03A;
@@ -72,74 +106,88 @@ assign init_cmd[55] = 9'h120;
 assign init_cmd[56] = 9'h123;
 assign init_cmd[57] = 9'h021;
 assign init_cmd[58] = 9'h029;
-assign init_cmd[59] = 9'h02A; // column
+assign init_cmd[59] = 9'h02A;
 assign init_cmd[60] = 9'h100;
 assign init_cmd[61] = 9'h128;
 assign init_cmd[62] = 9'h101;
 assign init_cmd[63] = 9'h117;
-assign init_cmd[64] = 9'h02B; // row
+assign init_cmd[64] = 9'h02B;
 assign init_cmd[65] = 9'h100;
 assign init_cmd[66] = 9'h135;
 assign init_cmd[67] = 9'h100;
 assign init_cmd[68] = 9'h1BB;
-assign init_cmd[69] = 9'h02C; // start
+assign init_cmd[69] = 9'h02C;
 
-localparam INIT_RESET   = 4'b0000; // delay 100ms while reset
-localparam INIT_PREPARE = 4'b0001; // delay 200ms after reset
-localparam INIT_WAKEUP  = 4'b0010; // write cmd 0x11 MIPI_DCS_EXIT_SLEEP_MODE
-localparam INIT_SNOOZE  = 4'b0011; // delay 120ms after wakeup
-localparam INIT_WORKING = 4'b0100; // write command & data
-localparam INIT_DONE    = 4'b0101; // all done
+// Codificar estados
+localparam INIT_RESET   = 4'b0000;
+localparam INIT_PREPARE = 4'b0001;
+localparam INIT_WAKEUP  = 4'b0010;
+localparam INIT_SNOOZE  = 4'b0011;
+localparam INIT_WORKING = 4'b0100;
+localparam INIT_DONE    = 4'b0101;
 
-`ifdef MODELTECH
-localparam CNT_100MS = 32'd2700000;
-localparam CNT_120MS = 32'd3240000;
-localparam CNT_200MS = 32'd5400000;
-`else
-localparam CNT_100MS = 32'd27;
-localparam CNT_120MS = 32'd32;
-localparam CNT_200MS = 32'd54;
-`endif
+// Proceso para cambiar colores basado en UART
+always_ff @(posedge clk or negedge resetn) begin
+    if (~resetn) begin
+        use_red <= 0;
+        use_green <= 0;
+        uart_data_valid <= 0;
+    end 
+    else begin
+        if (uart_data_ready) begin
+            if (uart_data == 8'h31) begin       // Si el dato recibido es '1'
+                use_red <= 1;                   // Usar Rojo y Azul
+                use_green <= 0;                 // No usar verde
+                uart_data_valid <= 1;
+            end 
+            else if (uart_data == 8'h32) begin  // Si el dato recibido es '2'
+                use_red <= 0;                   // No usar rojo
+                use_green <= 1;                 // Usar Verde y Azul
+                uart_data_valid <= 1;
+            end
+        end
+    end
+end
 
-logic [ 3:0] init_state;
-logic [ 6:0] cmd_index;
-logic [31:0] clk_cnt;
-logic [ 4:0] bit_loop;
-logic [7:0] row;    
-logic [7:0] col;   
-logic lcd_cs_r;
-logic lcd_rs_r;
-logic lcd_reset_r;
-logic [7:0] spi_data;
-logic toggle_color;
+// Control de colores
+always_comb begin
+    if (!uart_data_valid) begin
+        // Pantalla en blanco al inicio
+        P1 = 16'hFFFF; // Blanco
+        P2 = 16'hFFFF; // Blanco
+    end 
+    else if (use_red) begin
+        P1 = 16'hF800; // Rojo
+        P2 = 16'h001F; // Azul
+    end 
+    else if (use_green) begin
+        P1 = 16'h07E0; // Verde
+        P2 = 16'h001F; // Azul
+    end 
+    else begin
+        P1 = 16'hFFFF; // Blanco
+        P2 = 16'hFFFF; // Blanco
+    end
+end
 
-assign lcd_resetn = lcd_reset_r;
-assign lcd_clk    = ~clk;
-assign lcd_cs     = lcd_cs_r;
-assign lcd_rs     = lcd_rs_r;
-assign lcd_data   = spi_data[7]; // MSB
+// Alternar entre P1 y P2 cada 30 columnas
+always_ff @(posedge clk or negedge resetn) begin
+    if (~resetn) begin
+        toggle_color <= 0;
+    end 
+    else if (init_state == INIT_DONE) begin
+        if (col == 29 || col == 59 || col == 89 || col == 119 || col == 149 || col == 179 || col == 209 || col == 239) begin
+            toggle_color <= ~toggle_color;
+        end
+    end
+end
 
-// Instancia del UART para el teclado 
-uart_rx uart_rx_inst (
-    .clk(clk),
-    .resetn(resetn),
-    .rx(rx),
-    .data_rx(data_rx), // teclado para color
-    .valid_data(valid_data),
-    .data_ready(data_ready)
-);
+// Selección del color según toggle_color
+always_comb begin
+    pixel = toggle_color ? P1 : P2;
+end
 
-// Instancia del cambio de control
-color_control color_control_inst (
-    .clk(clk),
-    .resetn(resetn),
-    .config_select(data_rx), // variable de entrada del teclado con el UART
-    .col(col), // Salida del color al SPI
-    .init_state(init_state), //............Revisar con SPI luego...........
-    .pixel(pixel)
-);
-
-
+// Inicializar y escribir LCD
 always_ff @(posedge clk or negedge resetn) begin
     if (~resetn) begin
         clk_cnt <= 0;
@@ -152,14 +200,16 @@ always_ff @(posedge clk or negedge resetn) begin
         bit_loop <= 0;
         row <= 0;
         col <= 0;
-    end else begin
+    end 
+    else begin
         case (init_state)
             INIT_RESET : begin
                 if (clk_cnt == CNT_100MS) begin
                     clk_cnt <= 0;
                     init_state <= INIT_PREPARE;
                     lcd_reset_r <= 1;
-                end else begin
+                end 
+                else begin
                     clk_cnt <= clk_cnt + 1;
                 end
             end
@@ -167,7 +217,8 @@ always_ff @(posedge clk or negedge resetn) begin
                 if (clk_cnt == CNT_200MS) begin
                     clk_cnt <= 0;
                     init_state <= INIT_WAKEUP;
-                end else begin
+                end 
+                else begin
                     clk_cnt <= clk_cnt + 1;
                 end
             end
@@ -177,12 +228,14 @@ always_ff @(posedge clk or negedge resetn) begin
                     lcd_rs_r <= 0;
                     spi_data <= 8'h11;
                     bit_loop <= bit_loop + 1;
-                end else if (bit_loop == 8) begin
+                end 
+                else if (bit_loop == 8) begin
                     lcd_cs_r <= 1;
                     lcd_rs_r <= 1;
                     bit_loop <= 0;
                     init_state <= INIT_SNOOZE;
-                end else begin
+                end 
+                else begin
                     spi_data <= { spi_data[6:0], 1'b1 };
                     bit_loop <= bit_loop + 1;
                 end
@@ -191,25 +244,29 @@ always_ff @(posedge clk or negedge resetn) begin
                 if (clk_cnt == CNT_120MS) begin
                     clk_cnt <= 0;
                     init_state <= INIT_WORKING;
-                end else begin
+                end 
+                else begin
                     clk_cnt <= clk_cnt + 1;
                 end
             end
             INIT_WORKING : begin
                 if (cmd_index == MAX_CMDS + 1) begin
                     init_state <= INIT_DONE;
-                end else begin
+                end 
+                else begin
                     if (bit_loop == 0) begin
                         lcd_cs_r <= 0;
                         lcd_rs_r <= init_cmd[cmd_index][8];
                         spi_data <= init_cmd[cmd_index][7:0];
                         bit_loop <= bit_loop + 1;
-                    end else if (bit_loop == 8) begin
+                    end 
+                    else if (bit_loop == 8) begin
                         lcd_cs_r <= 1;
                         lcd_rs_r <= 1;
                         bit_loop <= 0;
                         cmd_index <= cmd_index + 1;
-                    end else begin
+                    end 
+                    else begin
                         spi_data <= { spi_data[6:0], 1'b1 };
                         bit_loop <= bit_loop + 1;
                     end
@@ -217,33 +274,38 @@ always_ff @(posedge clk or negedge resetn) begin
             end
             INIT_DONE : begin
                 if (row == 135 && col == 240) begin
-
-                end else begin
+                    // Espera hasta que la pantalla esté lista
+                end 
+                else begin
                     if (bit_loop == 0) begin
                         lcd_cs_r <= 0;
                         lcd_rs_r <= 1;
                         spi_data <= pixel[15:8]; 
                         bit_loop <= bit_loop + 1;
-                    end else if (bit_loop == 8) begin
+                    end 
+                    else if (bit_loop == 8) begin
                         spi_data <= pixel[7:0]; 
                         bit_loop <= bit_loop + 1;
-                    end else if (bit_loop == 16) begin
+                    end 
+                    else if (bit_loop == 16) begin
                         lcd_cs_r <= 1;
                         lcd_rs_r <= 1;
                         bit_loop <= 0;
-                        
                         if (col == 239) begin
                             col <= 0;
                             if (row == 134) begin
                                 row <= 0;
-                            end else begin
+                            end 
+                            else begin
                                 row <= row + 1;
                             end
-                        end else begin
+                        end 
+                        else begin
                             col <= col + 1;
                         end
-                    end else begin
-                        spi_data <= { spi_data[6:0], 1'b1 };
+                    end 
+                    else begin
+                        spi_data <= {spi_data[6:0], 1'b1};
                         bit_loop <= bit_loop + 1;
                     end
                 end
@@ -251,4 +313,5 @@ always_ff @(posedge clk or negedge resetn) begin
         endcase
     end
 end
+
 endmodule
