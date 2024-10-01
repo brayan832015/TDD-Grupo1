@@ -51,7 +51,7 @@ module clock_divider(
             scan_clk <= 0;
         end else begin
             clk_div <= clk_div + 1;
-            if (clk_div == 270000) begin //Esto resulta en un reloj de escaneo de 100Hz
+            if (clk_div == 270000) begin //Reloj de escaneo de 12.5Hz cambia de columna cada 20ms
                 clk_div <= 0;
                 scan_clk <= ~scan_clk; 
             end
@@ -156,7 +156,7 @@ module top_module(
     input logic d,   //Output D del codificador msb
 
     //Salidas controladas por la FPGA
-    output logic [1:0] count,
+    output logic [1:0] count, // Entrada a Decodificador físico
     output logic EN_s,    //~Data_available = ck = EN_s
     output logic out_A,
     output logic out_B, 
