@@ -1,0 +1,29 @@
+IO_LOC  "en" 4;
+IO_PORT "en" PULL_MODE=UP;
+
+IO_LOC  "led_enable" 15;
+IO_PORT "led_enable" DRIVE=8;
+
+IO_LOC  "lcd_resetn" 47;
+IO_PORT "lcd_resetn" PULL_MODE=UP;
+
+IO_LOC  "spi_sclk" 76;
+IO_PORT "spi_sclk" PULL_MODE=UP;
+
+IO_LOC  "spi_cs_l" 48;
+IO_PORT "spi_cs_l" PULL_MODE=UP;
+
+IO_LOC  "lcd_rs" 49;
+IO_PORT "lcd_rs" PULL_MODE=UP;
+
+IO_LOC  "spi_data" 77;
+IO_PORT "spi_data" PULL_MODE=UP;
+
+IO_LOC  "rx" 18;
+IO_PORT "rx" PULL_MODE=UP;
+
+IO_LOC  "clk" 52;
+IO_PORT "clk" PULL_MODE=UP;
+
+IO_LOC  "rst" 25;
+IO_PORT "rst" PULL_MODE=DOWN;
