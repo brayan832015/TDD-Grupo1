@@ -1,28 +1,50 @@
 module clock_divider_tb();
-
-    // Señales de prueba
     logic clk;
     logic rst;
     logic scan_clk;
 
-    // Instancia del DUT (Device Under Test)
-    clock_divider dut(
+    // Instantiate the clock divider module
+    clock_divider dut (
         .clk(clk),
         .rst(rst),
         .scan_clk(scan_clk)
     );
 
-    always #1 clk = ~clk;
+    // Clock generation
+    always #18 clk = ~clk;
 
-    // Secuencia de prueba
+    int tb_counter;
+    int period;
+
+    task automatic automatic_task();
+        tb_counter = 0;
+        forever begin
+            @(posedge clk);
+            if (rst) begin
+                tb_counter = 0;
+            end else begin
+                tb_counter++;
+            end
+
+            period = tb_counter/13500;
+
+            if (tb_counter >= 270000) begin // Periodo del scan_clk 20ms
+                $display("periodo = %0dms, scan_clk = %b", period, scan_clk);
+                tb_counter = 0;
+            end
+        end
+    endtask
+
     initial begin
-        // Inicializa las señales
         clk = 0;
         rst = 1;
-        #100 rst = 0;  // Libera el reset después de 100 ns
+        #100 rst = 0;
 
-        // Corre la simulación por un tiempo para observar los resultados
-        #2432432;  // Ajusta el tiempo según sea necesario
+        fork
+            automatic_task();
+        join_none
+
+        #270000000; // Run simulation for some time
         $finish;
     end
 
