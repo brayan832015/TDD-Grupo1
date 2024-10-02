@@ -94,14 +94,12 @@ module Interfaz_teclado_tb();
     task automatic monitor_EN_s();
         begin
             forever begin
-            // Wait for EN_s to go high
             @(posedge EN_s);
-                if (EN_s) begin
-                    // Print values of key, c, and d when EN_s is high
-                    $display($sformatf("Entrada estable EN_s: %b", EN_s));
-                    $display($sformatf("Output LEDs -> D: %0d, C: %0d, B: %0d, A: %0d", out_D, out_C, out_B, out_A));
-                    $display($sformatf("[1:0]count %b", count));
-                end
+                // Se imprimen las salidas
+                $display($sformatf("Entrada estable EN_s: %b", EN_s));
+                $display($sformatf("Output LEDs -> D: %0d, C: %0d, B: %0d, A: %0d", out_D, out_C, out_B, out_A));
+                $display($sformatf("[1:0]count %b", count));
+                
             end
         end
     endtask
