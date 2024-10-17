@@ -22,7 +22,7 @@ El sistema se divide en dos bloques principales:
 
 2. **Sistema secundario**: Dedicado exclusivamente al despliegue de imágenes en un panel LCD. Recibe comandos y datos del **Sistema Principal** a través de la interfaz UART y utiliza una interfaz **SPI** para controlar el display.
 
-   ![Figura 1. Diagrama de alto nivel del sistema completo (tarjetas de desarrollo)](![image](https://github.com/user-attachments/assets/4c0c8a08-7cee-4842-9ca5-36f3883da66a))
+   ![Figura 1. Diagrama de alto nivel del sistema completo (tarjetas de desarrollo)](https://github.com/user-attachments/assets/4c0c8a08-7cee-4842-9ca5-36f3883da66a)
 
 ### Componentes del microcontrolador
 
