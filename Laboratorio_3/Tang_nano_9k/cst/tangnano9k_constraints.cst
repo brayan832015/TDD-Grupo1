@@ -1,0 +1,27 @@
+IO_LOC  "key_detect" 16;
+IO_PORT "key_detect" DRIVE=8;
+
+IO_LOC  "count[0]" 29;
+
+IO_LOC  "count[1]" 30;
+
+IO_LOC  "key" 28;
+IO_PORT "key" PULL_MODE=DOWN;
+
+IO_LOC  "c" 27;
+IO_PORT "c" PULL_MODE=DOWN;
+
+IO_LOC  "d" 26;
+IO_PORT "d" PULL_MODE=DOWN;
+
+IO_LOC  "rst" 25;
+IO_PORT "rst" PULL_MODE=DOWN;
+
+IO_LOC  "clk" 52;
+IO_PORT "clk" PULL_MODE=UP;
+
+IO_LOC  "tx" 17;
+IO_PORT "tx" PULL_MODE=UP;
+
+IO_LOC  "rx" 18;
+IO_PORT "rx" PULL_MODE=UP;
