@@ -10,6 +10,15 @@ module top_nexys(
     input logic [3:0] buttons
     );
 
+    logic clk_10MHz;
+    logic [31:0] ProgAddress_o, ProgIn_i;
+    logic [31:0] DataAddress_o, DataOut_o, DataIn_i;
+    logic we_o;
+    logic [31:0] data_from_switches_buttons;
+    logic [31:0] data_from_uartA;
+    logic [31:0] data_from_uartB;
+    logic [31:0] data_from_RAM;
+
 clk_wiz_0 PLL_clock (
     .clk(clk),              // input clk 100 MHz
     .clk_10MHz(clk_10MHz)   // output clk 10 MHz 
@@ -56,7 +65,7 @@ switches_buttons switches_buttons (
     .address(DataAddress_o),       
     .switches(switches),
     .buttons(buttons),
-    .data_out(DataIn_i)
+    .data_out(data_from_switches_buttons)
 );
 
 leds_register leds_register (
@@ -69,5 +78,21 @@ leds_register leds_register (
 );
 
 // Falta ROM y RAM
+
+// Multiplexor para asignar correctamente DataIn_i
+    always_comb begin
+        if (DataAddress_o == 32'h00002000) begin
+            DataIn_i = data_from_switches_buttons;
+        end 
+        else if (DataAddress_o == 32'h0000201C) begin
+            DataIn_i = data_from_uartA;
+        end 
+        else if (DataAddress_o == 32'h00002002C) begin
+            DataIn_i = data_from_uartB;
+        end 
+        else begin
+            DataIn_i = data_from_RAM;
+        end
+    end
 
 endmodule
