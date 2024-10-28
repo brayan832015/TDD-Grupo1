@@ -32,7 +32,7 @@ top_uart uart_a (
     .reg_sel_i(),       
     .addr_i(),
     .Address(DataAddress_o),           
-    .salida_o(DataIn_i), 
+    .salida_o(data_from_uartA), 
     .rx(rx_A),             
     .tx(tx_A)               
 );
@@ -46,7 +46,7 @@ top_uart uart_b (
     .reg_sel_i(),       
     .addr_i(),
     .Address(DataAddress_o),          
-    .salida_o(DataIn_i), 
+    .salida_o(data_from_uartB), 
     .rx(rx_B),             
     .tx(tx_B)               
 );
@@ -91,10 +91,10 @@ leds_register leds_register (
         else if (DataAddress_o == 32'h0000201C) begin
             DataIn_i = data_from_uartA;
         end 
-        else if (DataAddress_o == 32'h00002002C) begin
+        else if (DataAddress_o == 32'h0000202C) begin
             DataIn_i = data_from_uartB;
         end 
-        else begin
+        else if (DataAddress_o >= 32'h00040000) begin
             DataIn_i = data_from_RAM;
         end
     end
