@@ -23,7 +23,7 @@ module uart_tx(
             busy <= 0;  // <-- Reset the busy signal
         end else begin
             baudrate_counter <= baudrate_counter + 1;
-            if(baudrate_counter == 2813) begin
+            if(baudrate_counter == 1042) begin
                 state <= nextstate;
                 baudrate_counter <= 0;
                 if (load)

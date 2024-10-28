@@ -18,7 +18,7 @@ module uart_rx(
     logic clear_bitcounter, inc_bitcounter, inc_samplecounter, clear_samplecounter;
     
     //Constants
-    parameter clk_freq = 27000000;
+    parameter clk_freq = 10000000;
     parameter baud_rate = 9600;
     parameter div_sample = 4;
     parameter div_counter = clk_freq/(baud_rate*div_sample);

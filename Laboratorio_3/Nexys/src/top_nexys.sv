@@ -30,23 +30,27 @@ top_uart uart_a (
     .wr_i(we_o),            
     .entrada_i(DataOut_o),
     .reg_sel_i(),       
-    .addr_i(DataAddress_o),          
+    .addr_i(),
+    .Address(DataAddress_o),           
     .salida_o(DataIn_i), 
     .rx(rx_A),             
     .tx(tx_A)               
 );
 
+/* UART B no se utiliza momentáneamente
 top_uart uart_b (
     .clk(clk_10MHz),
     .reset(reset),
     .wr_i(we_o),            
     .entrada_i(DataOut_o),
     .reg_sel_i(),       
-    .addr_i(DataAddress_o),          
+    .addr_i(),
+    .Address(DataAddress_o),          
     .salida_o(DataIn_i), 
     .rx(rx_B),             
     .tx(tx_B)               
 );
+*/
 
 top_picorv32 cpu (
     .clk_i(clk_10MHz),
