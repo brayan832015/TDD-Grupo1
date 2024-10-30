@@ -11,8 +11,7 @@ module control_uart (
     output logic tx               
 );
 
-    // Señales internas
-    logic send, busy;
+    logic send, new_rx, busy, send_to_write, new_rx_to_write;
     logic [7:0] data_rx, data_tx;
     logic WR2c, transmit;
 
@@ -32,21 +31,27 @@ module control_uart (
             WR2_control <= 0;
             WR2_data <= 0;
             IN2_control <= 32'h0;
-            IN2_data <= 32'h0; 
+            IN2_data <= 32'h0;
+            send_to_write <= 0;
+            new_rx_to_write <= 0; 
         end 
         else begin
             estado <= sig_estado;
-
+            IN2_control[0] <= send_to_write;
+            IN2_control[1] <= new_rx_to_write;
+            WR2_control <= 0;
+            WR2_data <= 0;
+            
             if (estado == recibir) begin 
                 WR2_control <= 1;
-                IN2_control <= 32'h00000002; // activar new_rx, lo limpia el procesador
+                new_rx_to_write <= 1; // activar new_rx, lo limpia el procesador
                 IN2_data <= {24'b0, data_rx}; // cargar el registro con lo recibido por UART
                 WR2_data <= 1;
             end
 
             if (estado == post_transmitir) begin 
                 WR2_control <= 1;
-                IN2_control <= 32'h0; // desactivar send, activado por el procesador en el inicio del envío
+                send_to_write <= 0; // desactivar send, activado por el procesador en el inicio del envío
             end
             
         end
@@ -82,6 +87,7 @@ module control_uart (
         endcase
     end
 
-assign send = OUT_control [0];
+assign send = OUT_control[0];
+assign new_rx = OUT_control[1];
 
 endmodule

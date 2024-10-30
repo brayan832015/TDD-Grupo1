@@ -29,8 +29,6 @@ top_uart uart_a (
     .reset(reset),
     .wr_i(we_o),            
     .entrada_i(DataOut_o),
-    .reg_sel_i(),       
-    .addr_i(),
     .Address(DataAddress_o),           
     .salida_o(data_from_uartA), 
     .rx(rx_A),             
@@ -43,8 +41,6 @@ top_uart uart_b (
     .reset(reset),
     .wr_i(we_o),            
     .entrada_i(DataOut_o),
-    .reg_sel_i(),       
-    .addr_i(),
     .Address(DataAddress_o),          
     .salida_o(data_from_uartB), 
     .rx(rx_B),             
@@ -88,10 +84,10 @@ leds_register leds_register (
         if (DataAddress_o == 32'h00002000) begin
             DataIn_i = data_from_switches_buttons;
         end 
-        else if (DataAddress_o == 32'h0000201C) begin
+        else if (DataAddress_o == 32'h00002010 || DataAddress_o == 32'h00002018 || DataAddress_o == 32'h0000201C) begin
             DataIn_i = data_from_uartA;
         end 
-        else if (DataAddress_o == 32'h0000202C) begin
+        else if (DataAddress_o == 32'h00002020 || DataAddress_o == 32'h00002028 || DataAddress_o == 32'h0000202C) begin
             DataIn_i = data_from_uartB;
         end 
         else if (DataAddress_o >= 32'h00040000) begin
