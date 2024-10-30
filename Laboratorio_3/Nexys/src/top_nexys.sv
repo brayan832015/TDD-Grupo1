@@ -77,7 +77,20 @@ leds_register leds_register (
     .led_output(leds)
 );
 
-// Falta ROM y RAM
+ROM ROM (
+  .clka(clk_10MHz),
+  .addra(ProgAddress_o[8:0]), // 255 posiciones
+  .douta(ProgIn_i)
+);
+
+RAM RAM (
+  .clka(clk_10MHz),
+  .ena(DataAddress_o[18]), // DataAddress_o[18] = 1 cuando Address es 0x40000 en adelante
+  .wea(we_o), 
+  .addra(DataAddress_o[15:0]), // 65535 posiciones
+  .dina(DataOut_o),
+  .douta(data_from_RAM)
+);
 
 // Multiplexor para asignar correctamente DataIn_i
     always_comb begin
