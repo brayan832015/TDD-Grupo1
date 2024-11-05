@@ -39,8 +39,6 @@ module data_regs (
     end
 
     always_comb begin
-        OUT_A = 32'b0;
-        OUT_B = 32'b0;
         if (Address == 32'h00002018 || Address == 32'h0000201C) begin  // UART A
             if (Address[3:0] == 4'h8) begin
                 OUT_A = regA0;

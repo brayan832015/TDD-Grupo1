@@ -72,8 +72,8 @@ module top_uart (
     );
 
     always_comb begin
-        control_out = 32'b0;
-        data_out = 32'b0;
+        //control_out = 32'b0;
+        //data_out = 32'b0;
         reg_sel_i = 0;
         
 

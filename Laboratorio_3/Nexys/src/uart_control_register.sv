@@ -25,7 +25,7 @@ module control_reg (
                     send_A <= IN1[0];
                     new_rx_A <= IN1[1];
                 end
-                if (WR2) begin
+                else if (WR2) begin
                     send_A <= IN2[0];
                     new_rx_A <= IN2[1];
                 end
@@ -35,7 +35,7 @@ module control_reg (
                     send_B <= IN1[0];
                     new_rx_B <= IN1[1];
                 end
-                if (WR2) begin
+                else if (WR2) begin
                     send_B <= IN2[0];
                     new_rx_B <= IN2[1];
                 end
