@@ -21,7 +21,9 @@ module top_nexys(
 
 clk_wiz_0 PLL_clock (
     .clk(clk),              // input clk 100 MHz
-    .clk_10MHz(clk_10MHz)   // output clk 10 MHz 
+    .clk_10MHz(clk_10MHz)  // output clk 10 MHz
+    //.reset(reset),
+    //.locked()
 );
 
 top_uart uart_a (
@@ -48,6 +50,7 @@ top_uart uart_b (
 );
 */
 
+
 top_picorv32 cpu (
     .clk_i(clk_10MHz),
     .rst_i(reset),
@@ -58,6 +61,7 @@ top_picorv32 cpu (
     .DataIn_i(DataIn_i),
     .we_o(we_o)
 );
+
 
 switches_buttons switches_buttons (
     .clk(clk_10MHz),
@@ -77,20 +81,24 @@ leds_register leds_register (
     .led_output(leds)
 );
 
+
 ROM ROM (
   .clka(clk_10MHz),
-  .addra(ProgAddress_o[8:0]), // 255 posiciones
+  .addra(ProgAddress_o[10:2]),
   .douta(ProgIn_i)
 );
 
+
+
 RAM RAM (
   .clka(clk_10MHz),
-  .ena(DataAddress_o[18]), // DataAddress_o[18] = 1 cuando Address es 0x40000 en adelante
+  .ena(DataAddress_o[18]), 
   .wea(we_o), 
-  .addra(DataAddress_o[15:0]), // 65535 posiciones
+  .addra(DataAddress_o[17:2]),
   .dina(DataOut_o),
   .douta(data_from_RAM)
 );
+
 
 // Multiplexor para asignar correctamente DataIn_i
     always_comb begin

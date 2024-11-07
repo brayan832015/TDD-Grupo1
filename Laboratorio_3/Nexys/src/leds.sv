@@ -14,9 +14,6 @@ module leds_register (
         else if (address == 32'h00002004 && we) begin
             led_output <= data_in[15:0];
         end 
-        else begin
-            led_output <= 16'b0;
-        end
     end
 
 endmodule

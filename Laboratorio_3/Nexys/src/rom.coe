@@ -1,3 +1,2 @@
-memory_initialization_radix=16; // hexadecimal
-memory_initialization_vector=
-00A28293, 01430313, 01E38393, 028E0E13, 032E8E93, 00628533, 01DE75B3, 01DE6633, 406286B3, 004000EF, 00064717, 00D50A63, 00D51463, 00000013, 00003783, 00AEB023, 00000013; // todas las instrucciones, por ahora un programa cualquiera
+memory_initialization_radix=16;
+memory_initialization_vector=000022b7 00428293 55555337 55530313 0062a023 fedff06f;
