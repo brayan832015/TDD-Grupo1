@@ -10,7 +10,7 @@ module top_nexys(
     input logic [3:0] buttons
     );
 
-    logic clk_10MHz;
+    logic clk_10MHz, locked;
     logic [31:0] ProgAddress_o, ProgIn_i;
     logic [31:0] DataAddress_o, DataOut_o, DataIn_i;
     logic we_o;
@@ -21,14 +21,14 @@ module top_nexys(
 
 clk_wiz_0 PLL_clock (
     .clk(clk),              // input clk 100 MHz
+    .locked(locked),
     .clk_10MHz(clk_10MHz)  // output clk 10 MHz
     //.reset(reset),
-    //.locked()
 );
 
 top_uart uart_a (
     .clk(clk_10MHz),
-    .reset(reset),
+    .reset(reset || ~locked),
     .wr_i(we_o),            
     .entrada_i(DataOut_o),
     .Address(DataAddress_o),           
@@ -40,7 +40,7 @@ top_uart uart_a (
 /* UART B no se utiliza momentáneamente
 top_uart uart_b (
     .clk(clk_10MHz),
-    .reset(reset),
+    .reset(reset || ~locked),
     .wr_i(we_o),            
     .entrada_i(DataOut_o),
     .Address(DataAddress_o),          
@@ -53,7 +53,7 @@ top_uart uart_b (
 
 top_picorv32 cpu (
     .clk_i(clk_10MHz),
-    .rst_i(reset),
+    .rst_i(reset || ~locked),
     .ProgAddress_o(ProgAddress_o),
     .ProgIn_i(ProgIn_i),
     .DataAddress_o(DataAddress_o),
@@ -65,7 +65,7 @@ top_picorv32 cpu (
 
 switches_buttons switches_buttons (
     .clk(clk_10MHz),
-    .rst(reset),
+    .rst(reset || ~locked),
     .address(DataAddress_o),       
     .switches(switches),
     .buttons(buttons),
@@ -74,7 +74,7 @@ switches_buttons switches_buttons (
 
 leds_register leds_register (
     .clk(clk_10MHz),
-    .rst(reset),
+    .rst(reset || ~locked),
     .address(DataAddress_o),
     .we(we_o),
     .data_in(DataOut_o),
