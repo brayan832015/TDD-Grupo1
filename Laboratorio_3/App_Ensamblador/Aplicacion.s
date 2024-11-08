@@ -1,6 +1,7 @@
 .section .data
 current_image_count: .word 0     # Contador de imágenes
 max_images:         .word 8      # Número máximo de imágenes permitido
+buffer: .space 129600             # Buffer para almacenar 8 imágenes (8 * 16200 bytes)
 
 .section .text
 .globl _start
@@ -38,8 +39,8 @@ almacenamiento_mode:
     beqz a0, exit_almacenamiento_mode  # Si RETRANSMITER falla, salir
 
     # Comenzar a recibir imagen desde la PC
-    li t5, 0x40000              # Dirección inicial de RAM para almacenar la imagen
-    li t6, 1024                 # Tamaño máximo de la imagen en bytes
+    la t5, buffer               # Dirección inicial del buffer para almacenar la imagen
+    li t6, 16200                # Tamaño de la imagen en bytes (240 * 135 * 0.5)
 
 almacenamiento_loop:
     # Leer cada byte del UART y almacenarlo en RAM
@@ -49,7 +50,7 @@ almacenamiento_loop:
     beqz t2, almacenamiento_loop # Esperar hasta que haya datos
 
     li t4, 0x02018              # Dirección del UART para datos
-    lw t2, 0(t4)                # Leer byte del UART
+    lb t2, 0(t4)                # Leer byte del UART
     sb t2, 0(t5)                # Almacenar byte en RAM
     addi t5, t5, 1              # Incrementar dirección en RAM
     addi t6, t6, -1             # Decrementar tamaño restante
@@ -79,9 +80,8 @@ exit_almacenamiento_mode:
 retransmiter_mode:
     li t0, 0x02018              # Dirección del UART para datos
     li t1, 0x01                 # Comando esperado para iniciar la transferencia de imagen
-
     # Leer comando desde UART
-    lw t2, 0(t0)
+ lb t2, 0(t0)
     beq t2, t1, send_ack        # Si el comando es correcto, enviar confirmación
     li a0, 0                    # Si es incorrecto, regresar 0 (fallo)
     jalr ra                     # Regresar a la dirección de retorno
@@ -107,15 +107,15 @@ desplegar_mode:
     beqz t5, exit_desplegar_mode  # Salir si no hay imágenes
 
     # Dirección inicial en RAM para la última imagen
-    li t6, 0x40000
-    slli t5, t5, 10             # Multiplicar por 1024 para el offset de la imagen
+    la t6, buffer               # Cargar la dirección del buffer
+    slli t5, t5, 14            # Multiplicar por 16200 para el offset de la imagen
     add t6, t6, t5
 
 desplegar_loop:
     # Enviar cada byte de la imagen a través del UART
     lb t2, 0(t6)                # Leer byte de la RAM
     li t4, 0x02018              # Dirección del UART para datos
-    sw t2, 0(t4)                # Enviar byte a través del UART
+    sb t2, 0(t4)                # Enviar byte a través del UART
     addi t6, t6, 1              # Siguiente byte
     addi t5, t5, -1             # Decrementar tamaño de la imagen
     bnez t5, desplegar_loop     # Continuar hasta enviar toda la imagen
