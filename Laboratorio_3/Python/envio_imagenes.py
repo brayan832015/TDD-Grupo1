@@ -11,7 +11,7 @@ ACK_CMD = b'\x02'    # Comando de reconocimiento
 NACK_CMD = b'\x03'   # Comando de rechazo
 
 # Directorio que contiene las imágenes
-image_folder = 'C:\\Users\\Jeffrey\\OneDrive - Estudiantes ITCR\\V año II Semestre\\2. Taller de Diseño Digital\\Laboratorio 3\\Aplicacion RV32I\\rawimages' # Actualiza con la ruta de tu carpeta
+image_folder = r'C:\Users\Jeffrey\OneDrive - Estudiantes ITCR\V año II Semestre\2. Taller de Diseño Digital\Laboratorio 3\Aplicacion RV32I\rawimages'  # Usa r'' para evitar problemas con las barras invertidas
 
 # Cargar 8 imágenes desde la carpeta especificada
 def load_images(folder_path):
@@ -69,7 +69,7 @@ def main():
     except Exception as e:
         print(f"Ocurrió un error: {e}")
     finally:
-        if 'ser' in locals():  # Verifica si 'ser' fue creado
+        if 'ser ' in locals():  # Verifica si 'ser' fue creado
             ser.close()  # Cierra el puerto serial
             print("Puerto serial cerrado.")
 
