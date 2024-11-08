@@ -84,13 +84,13 @@ retransmiter_mode:
     lw t2, 0(t0)
     beq t2, t1, send_ack        # Si el comando es correcto, enviar confirmación
     li a0, 0                    # Si es incorrecto, regresar 0 (fallo)
-    ret
+    jalr ra                     # Regresar a la dirección de retorno
 
 send_ack:
     li t3, 0x02                 # Señal para iniciar la transmisión
     sw t3, 0(t0)                # Enviar señal de inicio a través del UART
     li a0, 1                    # Indicar éxito
-    ret
+    jalr ra                     # Regresar a la dirección de retorno
 
 deny_image:
     li t3, 0x03                 # Código de negación
