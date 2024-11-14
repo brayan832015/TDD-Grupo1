@@ -3,10 +3,12 @@ module control_uart (
     input  logic reset,
     input  logic [31:0] OUT_control,
     input  logic [31:0] OUT_data,
+    input  logic [31:0] Address,
     output logic [31:0] IN2_control,
     output logic [31:0] IN2_data,
-    output logic WR2_control,
-    output logic WR2_data, 
+    output logic WR2_data,
+    output logic WR2_new_rx,
+    output logic WR2_send,
     input  logic rx,             
     output logic tx               
 );
@@ -27,7 +29,8 @@ module control_uart (
     always_ff @(posedge clk or posedge reset) begin
         if (reset) begin
             estado <= esperar;
-            WR2_control <= 0;
+            WR2_send <= 0;
+            WR2_new_rx <= 0;
             WR2_data <= 0;
             IN2_control <= 32'h0;
             IN2_data <= 32'h0;
@@ -39,15 +42,19 @@ module control_uart (
             estado <= sig_estado;
             IN2_control[0] <= send_to_write;
             IN2_control[1] <= new_rx_to_write;
-            WR2_control <= 0;
+            WR2_new_rx <= 0;
+            WR2_send <= 0;
             WR2_data <= 0;
             
             if (estado == recibir) begin 
-                WR2_control <= 1;
+                WR2_new_rx <= 1;
                 new_rx_to_write <= 1; // activar new_rx, lo limpia el procesador
                 IN2_data <= {24'b0, data_rx}; // cargar el registro con lo recibido por UART
                 WR2_data <= 1;
                 //transmit_counter <= transmit_counter + 1; // Incrementar el contador en `recibir`
+            end
+            else if (estado == esperar) begin
+                new_rx_to_write <= 0;
             end
             else if (estado == transmitir) begin
                 transmit_counter <= transmit_counter + 1; // Incrementar el contador en `transmitir`
@@ -56,14 +63,17 @@ module control_uart (
                 transmit_counter <= 14'b0;  // Resetear el contador si no estamos en `recibir` o `transmitir`
             end
             
-            if (estado == espera_transmitir && !busy) begin 
-                WR2_control <= 1;
+            if (estado == espera_transmitir) begin 
+                WR2_send <= 1;
                 send_to_write <= 0; // desactivar send, activado por el procesador en el inicio del envío
             end
         end
     end
 
     always_comb begin
+        if (Address == 32'h00002018) begin
+            data_tx <= OUT_data[7:0];
+        end
         sig_estado = estado;
         transmit = 0; 
         case (estado)
@@ -86,7 +96,7 @@ module control_uart (
             end
 
             transmitir: begin
-                data_tx = OUT_data[7:0];
+                
                 transmit = 1;
                 if (transmit_counter == 1042) begin // Tiempo de transmisión de un byte completo (ajustar si es necesario)
                     sig_estado = espera_transmitir;

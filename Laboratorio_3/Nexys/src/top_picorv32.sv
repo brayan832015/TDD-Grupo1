@@ -6,6 +6,7 @@ module top_picorv32 (
     output logic [31:0] DataAddress_o,
     output logic [31:0] DataOut_o,
     input logic [31:0] DataIn_i,
+    output logic [3:0] wstrb,
     output logic we_o
 );
 
@@ -38,6 +39,7 @@ module top_picorv32 (
     assign DataOut_o     = mem_wdata;
     assign we_o          = |mem_wstrb; // `we_o` es alto si cualquier bit de `mem_wstrb` está activo
     assign mem_rdata     = mem_instr ? ProgIn_i : DataIn_i; // Entrada ROM o RAM
+    assign wstrb         = mem_wstrb;
 
     // Espera para mem_ready
     always_ff @(posedge clk_i or posedge rst_i) begin

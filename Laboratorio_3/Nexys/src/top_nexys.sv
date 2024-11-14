@@ -18,12 +18,13 @@ module top_nexys(
     logic [31:0] data_from_uartA;
     logic [31:0] data_from_uartB;
     logic [31:0] data_from_RAM;
+    logic [3:0] wstrb;
+
 
 clk_wiz_0 PLL_clock (
     .clk(clk),              // input clk 100 MHz
     .locked(locked),
     .clk_10MHz(clk_10MHz)  // output clk 10 MHz
-    //.reset(reset),
 );
 
 top_uart uart_a (
@@ -59,6 +60,7 @@ top_picorv32 cpu (
     .DataAddress_o(DataAddress_o),
     .DataOut_o(DataOut_o),
     .DataIn_i(DataIn_i),
+    .wstrb(wstrb),
     .we_o(we_o)
 );
 
@@ -89,11 +91,10 @@ ROM ROM (
 );
 
 
-
 RAM RAM (
   .clka(clk_10MHz),
   .ena(DataAddress_o[18]), 
-  .wea(we_o), 
+  .wea(wstrb), 
   .addra(DataAddress_o[17:2]),
   .dina(DataOut_o),
   .douta(data_from_RAM)

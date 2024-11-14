@@ -12,7 +12,7 @@ module top_uart (
     logic [31:0] control_out, data_out;
     logic wr_control, wr_data, reg_sel_i;
     logic [31:0] IN2_control, IN2_data;
-    logic WR2_control, WR2_data;
+    logic WR2_new_rx, WR2_send, WR2_data;
     logic [31:0] OUT_A_ctrl, OUT_B_ctrl;
     logic [31:0] OUT_A_data, OUT_B_data;
 
@@ -40,7 +40,8 @@ module top_uart (
         .IN2(IN2_control),
         .Address(Address),
         .WR1(wr_control),
-        .WR2(WR2_control),
+        .WR2_send(WR2_send),
+        .WR2_new_rx(WR2_new_rx),
         .OUT_A(OUT_A_ctrl),
         .OUT_B(OUT_B_ctrl)
     );
@@ -61,11 +62,13 @@ module top_uart (
     control_uart control_uart (
         .clk(clk),
         .reset(reset),
+        .Address(Address),
         .OUT_control(control_out),
         .OUT_data(data_out),
         .IN2_control(IN2_control),
         .IN2_data(IN2_data),
-        .WR2_control(WR2_control),
+        .WR2_send(WR2_send),
+        .WR2_new_rx(WR2_new_rx),
         .WR2_data(WR2_data), 
         .rx(rx),             
         .tx(tx)               
