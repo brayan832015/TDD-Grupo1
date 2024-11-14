@@ -1,124 +1,144 @@
 .section .data
 current_image_count: .word 0     # Contador de imágenes
 max_images:         .word 8      # Número máximo de imágenes permitido
-buffer:             .space 129600 # Buffer para almacenar 8 imágenes (8 * 16200 bytes)
+
+# .org 0x40000                     # buffer inicia en el address 262144 (0x40000)
+# buffer: .space 129600            # Buffer para almacenar 8 imágenes (8 * 64800 bytes / 4)
 
 .section .text
 .globl _start
 
 _start:
-    jal reposo_mode              # Iniciar en modo REPOSO
+    # Iniciar en modo REPOSO
+    li s1, 0x00040000           # Dirección inicial RAM
+    jal reposo_mode
 
 # -----------------------------------------------------
 # Modo REPOSO
 # -----------------------------------------------------
 reposo_mode:
-    li t0, 0x02000               # Dirección de los interruptores
-    lw t1, 0(t0)                 # Leer estado de los interruptores
+    li t0, 0x02000              # Dirección de los interruptores
+    lw t1, 0(t0)                # Leer estado de los interruptores
 
-    andi t2, t1, 0x01            # Verificar botón para DESPLEGAR (bit 0)
-    bnez t2, desplegar_mode      # Si está activo, ir al modo DESPLEGAR
+    # Verificar si se presiona un botón para activar modo DESPLEGAR
+    andi t2, t1, 0x01           # Asumiendo que el botón para DESPLEGAR es el bit 0
+    bnez t2, desplegar_mode     # Si el bit 0 está activo, ir a modo DESPLEGAR
 
-    li t3, 0x02010               # Dirección del registro de control del UART
-    lw t4, 0(t3)                 # Verificar estado del UART
-    andi t4, t4, 0x01            # Verificar si hay datos listos para leer
-    bnez t4, almacenamiento_mode # Ir a ALMACENAMIENTO si hay datos disponibles
+    # Verificar si hay datos en el UART para activar modo ALMACENAMIENTO
+    li t3, 0x02010              # Dirección del registro de control del UART
+    lw t4, 0(t3)                # Leer estado del UART
+    andi t4, t4, 0x00000002           # Verificar si hay datos listos para leer
+    bnez t4, almacenamiento_mode # Si hay datos, ir a modo ALMACENAMIENTO
 
-    j reposo_mode                # Permanecer en modo REPOSO si no hay eventos
+    # Permanecer en modo REPOSO si no hay eventos
+    j reposo_mode
 
 # -----------------------------------------------------
 # Modo ALMACENAMIENTO
 # -----------------------------------------------------
 almacenamiento_mode:
+    # Llamar a modo RETRANSMITER para verificar el comando
     jal retransmiter_mode
-    beqz a0, exit_almacenamiento_mode  # Salir si RETRANSMITER falla
 
-    la t5, buffer                # Dirección inicial del buffer para almacenar la imagen
-    li t6, 16200                 # Tamaño de la imagen en bytes
+    beqz a0, exit_almacenamiento_mode  # Si RETRANSMITER falla, salir
+
+    # Comenzar a recibir imagen desde la PC
+    # la t5, buffer               # Dirección inicial del buffer para almacenar la imagen
+    # li s1, 0x00040000           # Dirección inicial RAM
+    li t6, 64800                # Tamaño de la imagen en bytes (240 * 135 * 2)
 
 almacenamiento_loop:
-    li t3, 0x02010               # Dirección del registro de control del UART
-    lw t2, 0(t3)
-    andi t2, t2, 0x01            # Verificar si hay datos listos para leer
+    # Leer cada byte del UART y almacenarlo en RAM
+    li t3, 0x02010              # Dirección del registro de control del UART
+    lw t2, 0(t3)                # Leer estado del UART
+    andi t2, t2, 0x02           # Verificar si hay datos listos para leer
     beqz t2, almacenamiento_loop # Esperar hasta que haya datos
 
-    li t4, 0x02018               # Dirección del UART para datos
-    lb t2, 0(t4)                 # Leer byte del UART
-    sb t2, 0(t5)                 # Almacenar byte en RAM
-    addi t5, t5, 1               # Incrementar dirección en RAM
-    addi t6, t6, -1              # Decrementar tamaño restante
-    bnez t6, almacenamiento_loop # Continuar hasta que la imagen esté completa
+    #########
+    li t0, 0x02010              # Dirección del registro de control
+    li t3, 0x00                 # Apagar new_rx
+    sw t3, 0(t0)                # Escribir reg control
+    #########
 
-    # Imagen almacenada exitosamente, incrementar contador de imágenes y actualizar LEDs
-    la t0, current_image_count
-    lw t3, 0(t0)
-    addi t3, t3, 1               # Incrementar contador de imágenes
-    sw t3, 0(t0)
+    li t4, 0x0201C              # Dirección del UART para recibir datos
+    lb t2, 0(t4)                # Leer byte del UART
+    sb t2, 0(s1)                # Almacenar byte en RAM
+    addi s1, s1, 1              # Incrementar dirección en RAM
+    addi t6, t6, -1             # Decrementar tamaño restante
+    bnez t6, almacenamiento_loop # Repetir hasta que la imagen esté completa
 
-    # Calcular la máscara de bits del LED según el contador de imágenes actual
-    li t4, 0x2004                # Dirección de los LEDs
-    li t2, 1                     # Bit de inicio del LED (0b00000001)
-    sll t2, t2, t3               # Desplazar a la izquierda por (contador de imágenes - 1) para encender el LED correcto
-    sw t2, 0(t4)                 # Actualizar LEDs con el nuevo patrón de bits
+    # Actualizar contador de imágenes
+    la t0, current_image_count  # Cargar la dirección de current_image_count
+    lw t3, 0(t0)                # Leer contador de imágenes
+    addi t3, t3, 1              # Incrementar contador
+    sw t3, 0(t0)                # Almacenar contador actualizado
 
-    # Verificar si se ha alcanzado el número máximo de imágenes
-    la t0, max_images
+    # Mostrar contador en los LEDs
+    li t4, 0x02004              # Dirección de los LEDs
+    sw t3, 0(t4)                # Mostrar contador en los LEDs
+
+    # Verificar si se excede el límite de imágenes
+    la t0, max_images           # Cargar la dirección de max_images
     lw t4, 0(t0)
-    bge t3, t4, deny_image       # Negar si se excede el límite de imágenes
+    bge t3, t4, deny_image      # Si se excede, negar más imágenes
 
 exit_almacenamiento_mode:
-    j reposo_mode                # Regresar al modo REPOSO
+    j reposo_mode               # Regresar al modo REPOSO
 
 # -----------------------------------------------------
 # Modo RETRANSMITER (subrutina de almacenamiento)
 # -----------------------------------------------------
 retransmiter_mode:
-    li t0, 0x02018               # Dirección del UART para datos
-    li t1, 0x01                  # Comando esperado para iniciar la transferencia de imagen
+    li t0, 0x0201C              # Dirección del registro de datos para recibir
+    li t1, 0x01                 # Comando esperado para iniciar la transferencia de imagen
+    # Leer comando desde UART
     lb t2, 0(t0)
-    beq t2, t1, send_ack         # Enviar ACK si el comando coincide
-    li a0, 0                     # Retornar 0 en caso de fallo
-    jalr ra
+    beq t2, t1, send_ack        # Si el comando es correcto, enviar confirmación
+    li a0, 0                    # Si es incorrecto, regresar 0 (fallo)
+    jalr ra                     # Regresar a la dirección de retorno
 
 send_ack:
-    li t3, 0x02                  # Comando de ACK
-    sb t3, 0(t0)                 # Enviar ACK vía UART
-    nop                          # Retardo para el procesamiento del UART
-    li a0, 1                     # Indicador de éxito
-    jalr ra
+    li t0, 0x02018              # Dirección del registro de datos para enviar
+    li t3, 0x02                 # Comando aceptación
+    sw t3, 0(t0)                # Cargar registro de datos con comando aceptación
+    li t0, 0x02010              # Dirección del registro de control
+    li t3, 0x01                 # Señal para iniciar la transmisión
+    sw t3, 0(t0)                # Enviar señal de inicio a través del UART
+    li a0, 1                    # Indicar éxito
+    jalr ra                     # Regresar a la dirección de retorno
 
 deny_image:
-    li t3, 0x03                  # Comando de NACK
-    sb t3, 0(t0)                 # Enviar NACK vía UART
-    nop                          # Retardo para el procesamiento del UART
-    j reposo_mode                # Regresar al modo REPOSO
+    li t0, 0x02018              # Dirección del registro de datos para enviar
+    li t3, 0x03                 # Código de negación
+    sw t3, 0(t0)                # Enviar negación a través del UART
+    li t0, 0x02010              # Dirección del registro de control
+    li t3, 0x01                 # Señal para iniciar la transmisión
+    sw t3, 0(t0)                # Enviar señal de inicio a través del UART
+    j reposo_mode               # Regresar al modo REPOSO
 
 # -----------------------------------------------------
 # Modo DESPLEGAR
 # -----------------------------------------------------
+
 desplegar_mode:
-    la t0, current_image_count
+    # Recuperar contador de imágenes almacenadas
+    la t0, current_image_count  # Cargar la dirección de current_image_count
     lw t5, 0(t0)
-    beqz t5, exit_desplegar_mode # Salir si no hay imágenes
+    beqz t5, exit_desplegar_mode  # Salir si no hay imágenes
 
-    la t6, buffer                # Dirección base del buffer
-    li t4, 16200                 # Tamaño de desplazamiento de la imagen
-
-    # Multiplicar por 16200 manualmente, ya que RV32I no soporta MUL
-    mv t3, t5                    # Copiar el contador de imágenes a t3 para el cálculo del desplazamiento
-    loop_offset:
-        add t6, t6, t4           # Sumar 16200 bytes por imagen
-        addi t3, t3, -1
-        bnez t3, loop_offset     # Repetir hasta que se calcule el desplazamiento
+    # Dirección inicial en RAM para la última imagen
+    # la t6, buffer               # Cargar la dirección del buffer
+    slli t5, t5, 14            # Multiplicar por 16200 para el offset de la imagen
+    add t6, t6, t5
 
 desplegar_loop:
-    lb t2, 0(t6)                 # Leer byte de la RAM
-    li t4, 0x02018               # Dirección del UART para datos
-    sb t2, 0(t4)                 # Enviar byte vía UART
-    nop                          # Retardo para el procesamiento del UART
-    addi t6, t6, 1               # Siguiente byte
-    addi t5, t5, -1              # Decrementar tamaño de la imagen
-    bnez t5, desplegar_loop      # Continuar hasta enviar toda la imagen
+    # Enviar cada byte de la imagen a través del UART
+    lb t2, 0(t6)                # Leer byte de la RAM
+    li t4, 0x02018              # Dirección del UART para datos
+    sb t2, 0(t4)                # Enviar byte a través del UART
+    addi t6, t6, 1              # Siguiente byte
+    addi t5, t5, -1             # Decrementar tamaño de la imagen
+    bnez t5, desplegar_loop     # Continuar hasta enviar toda la imagen
 
 exit_desplegar_mode:
-    j reposo_mode                # Regresar al modo REPOSO
+    j reposo_mode               # Regresar al modo REPOSO

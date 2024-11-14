@@ -17,11 +17,11 @@ initial begin
 	rst = 1;
 	#10
 	rst = 0;
-	#500000000
+	#5000000
 	rst = 1;
 	#10
 	rst = 0;
-	#500000000 $stop;
+	#5000000 $stop;
 end
 
 top dut(
