@@ -1,5 +1,5 @@
 .section .data
-current_image_count: .word 0     # Contador de imágenes
+# current_image_count: .word 0     # Contador de imágenes
 max_images:         .word 8      # Número máximo de imágenes permitido
 
 # .org 0x40000                     # buffer inicia en el address 262144 (0x40000)
@@ -50,32 +50,57 @@ almacenamiento_mode:
 almacenamiento_loop:
     # Leer cada byte del UART y almacenarlo en RAM
     li t3, 0x02010              # Dirección del registro de control del UART
-    lw t2, 0(t3)                # Leer estado del UART
-    andi t2, t2, 0x02           # Verificar si hay datos listos para leer
+    lw t5, 0(t3)                # Leer estado del UART
+    andi t2, t5, 0x02           # Verificar si hay datos listos para leer
     beqz t2, almacenamiento_loop # Esperar hasta que haya datos
-
-    #########
-    li t0, 0x02010              # Dirección del registro de control
-    li t3, 0x00                 # Apagar new_rx
-    sw t3, 0(t0)                # Escribir reg control
-    #########
 
     li t4, 0x0201C              # Dirección del UART para recibir datos
     lb t2, 0(t4)                # Leer byte del UART
     sb t2, 0(s1)                # Almacenar byte en RAM
     addi s1, s1, 1              # Incrementar dirección en RAM
     addi t6, t6, -1             # Decrementar tamaño restante
-    bnez t6, almacenamiento_loop # Repetir hasta que la imagen esté completa
+
+    #########
+    andi s2, t5, 0x01
+    bnez s2, escribir1
+    li t0, 0x00                 # Apagar new_rx
+    sw t0, 0(t3)                # Escribir reg control
+    j guardar_RAM
+    #########
+
+escribir1:
+    li t0, 0x01                 # Dejar send activo
+    sw t0, 0(t3)                # Escribir reg control
+
+guardar_RAM:
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
+    bnez t6, almacenamiento_loop   # Repetir hasta que la imagen esté completa
 
     # Actualizar contador de imágenes
-    la t0, current_image_count  # Cargar la dirección de current_image_count
+    li t0, 0x02004
     lw t3, 0(t0)                # Leer contador de imágenes
     addi t3, t3, 1              # Incrementar contador
     sw t3, 0(t0)                # Almacenar contador actualizado
-
-    # Mostrar contador en los LEDs
-    li t4, 0x02004              # Dirección de los LEDs
-    sw t3, 0(t4)                # Mostrar contador en los LEDs
 
     # Verificar si se excede el límite de imágenes
     la t0, max_images           # Cargar la dirección de max_images
