@@ -130,6 +130,28 @@ send_ack:
     li t3, 0x01                 # Señal para iniciar la transmisión
     sw t3, 0(t0)                # Enviar señal de inicio a través del UART
     li a0, 1                    # Indicar éxito
+
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
     jalr ra                     # Regresar a la dirección de retorno
 
 deny_image:
