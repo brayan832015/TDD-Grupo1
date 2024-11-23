@@ -12,7 +12,7 @@ module leds_register (
             led_output <= 16'b0;
         end
         else if (address == 32'h00002004 && we) begin
-            led_output <= data_in[15:0];
+            led_output [15:0] <= data_in[15:0];
         end 
     end
 

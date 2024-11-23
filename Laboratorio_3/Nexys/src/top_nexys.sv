@@ -38,7 +38,6 @@ top_uart uart_a (
     .tx(tx_A)               
 );
 
-/* UART B no se utiliza momentáneamente
 top_uart uart_b (
     .clk(clk_10MHz),
     .reset(reset || ~locked),
@@ -49,8 +48,6 @@ top_uart uart_b (
     .rx(rx_B),             
     .tx(tx_B)               
 );
-*/
-
 
 top_picorv32 cpu (
     .clk_i(clk_10MHz),
@@ -93,7 +90,7 @@ ROM ROM (
 
 RAM RAM (
   .clka(clk_10MHz),
-  .ena(DataAddress_o[18]), 
+  .ena(DataAddress_o[18] && DataAddress_o[31:19] == 13'd0), 
   .wea(wstrb), 
   .addra(DataAddress_o[17:2]),
   .dina(DataOut_o),

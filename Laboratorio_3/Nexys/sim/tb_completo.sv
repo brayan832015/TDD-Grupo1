@@ -50,14 +50,164 @@ module top_nexys_tb;
         #50;
         
         // comando de inicio
-        comando_inicio = 8'b1;
+        comando_inicio = 8'b11111111;
         send_uart_byte_to_rx(comando_inicio);
         wait_cycles(20);
         
         #50;
         
         // Pruebas de recepción (RX)
-        for (int i = 0; i < 25; i++) begin
+        for (int i = 0; i < 64800; i++) begin
+            datos_aleatorios = $urandom_range(0, 255); // byte aleatorio
+
+            // Enviar byte en la línea RX
+            send_uart_byte_to_rx(datos_aleatorios);
+            
+            wait_cycles(10);
+
+            #50; // Espera entre pruebas
+        end
+        
+        
+        send_uart_byte_to_rx(comando_inicio);
+        wait_cycles(20);
+        
+        #50;
+        
+        // Pruebas de recepción (RX)
+        for (int i = 0; i < 64800; i++) begin
+            datos_aleatorios = $urandom_range(0, 255); // byte aleatorio
+
+            // Enviar byte en la línea RX
+            send_uart_byte_to_rx(datos_aleatorios);
+            
+            wait_cycles(10);
+
+            #50; // Espera entre pruebas
+        end
+        
+        
+        
+        send_uart_byte_to_rx(comando_inicio);
+        wait_cycles(20);
+        
+        #50;
+        
+        // Pruebas de recepción (RX)
+        for (int i = 0; i < 64800; i++) begin
+            datos_aleatorios = $urandom_range(0, 255); // byte aleatorio
+
+            // Enviar byte en la línea RX
+            send_uart_byte_to_rx(datos_aleatorios);
+            
+            wait_cycles(10);
+
+            #50; // Espera entre pruebas
+        end
+        
+        
+        
+        send_uart_byte_to_rx(comando_inicio);
+        wait_cycles(20);
+        
+        #50;
+        
+        // Pruebas de recepción (RX)
+        for (int i = 0; i < 64800; i++) begin
+            datos_aleatorios = $urandom_range(0, 255); // byte aleatorio
+
+            // Enviar byte en la línea RX
+            send_uart_byte_to_rx(datos_aleatorios);
+            
+            wait_cycles(10);
+
+            #50; // Espera entre pruebas
+        end
+        
+        
+        
+        send_uart_byte_to_rx(comando_inicio);
+        wait_cycles(20);
+        
+        #50;
+        
+        // Pruebas de recepción (RX)
+        for (int i = 0; i < 64800; i++) begin
+            datos_aleatorios = $urandom_range(0, 255); // byte aleatorio
+
+            // Enviar byte en la línea RX
+            send_uart_byte_to_rx(datos_aleatorios);
+            
+            wait_cycles(10);
+
+            #50; // Espera entre pruebas
+        end
+        
+        
+        
+        send_uart_byte_to_rx(comando_inicio);
+        wait_cycles(20);
+        
+        #50;
+        
+        // Pruebas de recepción (RX)
+        for (int i = 0; i < 64800; i++) begin
+            datos_aleatorios = $urandom_range(0, 255); // byte aleatorio
+
+            // Enviar byte en la línea RX
+            send_uart_byte_to_rx(datos_aleatorios);
+            
+            wait_cycles(10);
+
+            #50; // Espera entre pruebas
+        end
+        
+        
+        
+        send_uart_byte_to_rx(comando_inicio);
+        wait_cycles(20);
+        
+        #50;
+        
+        // Pruebas de recepción (RX)
+        for (int i = 0; i < 64800; i++) begin
+            datos_aleatorios = $urandom_range(0, 255); // byte aleatorio
+
+            // Enviar byte en la línea RX
+            send_uart_byte_to_rx(datos_aleatorios);
+            
+            wait_cycles(10);
+
+            #50; // Espera entre pruebas
+        end
+        
+        
+        send_uart_byte_to_rx(comando_inicio);
+        wait_cycles(20);
+        
+        #50;
+        
+        // Pruebas de recepción (RX)
+        for (int i = 0; i < 64800; i++) begin
+            datos_aleatorios = $urandom_range(0, 255); // byte aleatorio
+
+            // Enviar byte en la línea RX
+            send_uart_byte_to_rx(datos_aleatorios);
+            
+            wait_cycles(10);
+
+            #50; // Espera entre pruebas
+        end
+        
+        
+        
+        send_uart_byte_to_rx(comando_inicio);
+        wait_cycles(20);
+        
+        #50;
+        
+        // Pruebas de recepción (RX)
+        for (int i = 0; i < 64800; i++) begin
             datos_aleatorios = $urandom_range(0, 255); // byte aleatorio
 
             // Enviar byte en la línea RX
