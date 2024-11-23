@@ -1,9 +1,4 @@
 .section .data
-# current_image_count: .word 0     # Contador de imágenes
-max_images:         .word 8      # Número máximo de imágenes permitido
-
-# .org 0x40000                     # buffer inicia en el address 262144 (0x40000)
-# buffer: .space 129600            # Buffer para almacenar 8 imágenes (8 * 64800 bytes / 4)
 
 .section .text
 .globl _start
@@ -11,6 +6,8 @@ max_images:         .word 8      # Número máximo de imágenes permitido
 _start:
     # Iniciar en modo REPOSO
     li s1, 0x00040000           # Dirección inicial RAM
+    li a7, 0
+    li a2, 0
     jal reposo_mode
 
 # -----------------------------------------------------
@@ -43,8 +40,6 @@ almacenamiento_mode:
     beqz a0, exit_almacenamiento_mode  # Si RETRANSMITER falla, salir
 
     # Comenzar a recibir imagen desde la PC
-    # la t5, buffer               # Dirección inicial del buffer para almacenar la imagen
-    # li s1, 0x00040000           # Dirección inicial RAM
     li t6, 64800                # Tamaño de la imagen en bytes (240 * 135 * 2)
 
 almacenamiento_loop:
@@ -57,7 +52,7 @@ almacenamiento_loop:
     li t4, 0x0201C              # Dirección del UART para recibir datos
     lb t2, 0(t4)                # Leer byte del UART
     sb t2, 0(s1)                # Almacenar byte en RAM
-    addi s1, s1, 1              # Incrementar dirección en RAM
+    addi s1, s1, 1              # Incrementar byte en RAM
     addi t6, t6, -1             # Decrementar tamaño restante
 
     #########
@@ -98,16 +93,30 @@ guardar_RAM:
 
     # Actualizar contador de imágenes
     li t0, 0x02004
-    lw t3, 0(t0)                # Leer contador de imágenes
-    addi t3, t3, 1              # Incrementar contador
-    sw t3, 0(t0)                # Almacenar contador actualizado
+    li t1, 1                    # Cargar 1 para el shift
+    beqz a7, first_image        # Si es la primera imagen
+    slli a7, a7, 1              # Shift left 1 bit
+    or a7, a7, t1               # OR con el valor anterior
+    addi a2, a2, 1
+    j continue_count
+    
+first_image:
+    li a7, 1                    # Primera imagen, establecer bit 0
+    li a2, 1
 
-    # Verificar si se excede el límite de imágenes
-    la t0, max_images           # Cargar la dirección de max_images
-    lw t4, 0(t0)
-    bge t3, t4, deny_image      # Si se excede, negar más imágenes
+continue_count:
+    sw a7, 0(t0)                # Almacenar contador imagenes actualizado
 
 exit_almacenamiento_mode:
+
+    # Verificar carga de RAM con LEDs (prueba provisional)
+    #############################################
+    #li t0, 0x02004
+    #li t2, 0x040000
+    #lw t3, 0(t2)
+    #sw t3, 0(t0)
+    #############################################
+
     j reposo_mode               # Regresar al modo REPOSO
 
 # -----------------------------------------------------
@@ -115,14 +124,22 @@ exit_almacenamiento_mode:
 # -----------------------------------------------------
 retransmiter_mode:
     li t0, 0x0201C              # Dirección del registro de datos para recibir
-    li t1, 0x01                 # Comando esperado para iniciar la transferencia de imagen
+    li t1, 0xFFFFFFFF                 # Comando esperado para iniciar la transferencia de imagen
     # Leer comando desde UART
     lb t2, 0(t0)
+
+    #######################################################
+    # Verificar si se excede el límite de imágenes
+    li t4, 8                    # 8 imagenes maximo
+    bge a2, t4, deny_image      # Si se excede, negar más imágenes    
+    #######################################################
+
     beq t2, t1, send_ack        # Si el comando es correcto, enviar confirmación
     li a0, 0                    # Si es incorrecto, regresar 0 (fallo)
     jalr ra                     # Regresar a la dirección de retorno
 
 send_ack:
+
     li t0, 0x02018              # Dirección del registro de datos para enviar
     li t3, 0x02                 # Comando aceptación
     sw t3, 0(t0)                # Cargar registro de datos con comando aceptación
