@@ -14,18 +14,16 @@ _start:
 # Modo REPOSO
 # -----------------------------------------------------
 reposo_mode:
-    li t0, 0x02000              # Dirección de los interruptores
+    li t0, 0x02020              # Dirección del registro de control del UART B
     lw t1, 0(t0)                # Leer estado de los interruptores
+    andi t1, t1, 0x00000002
+    bnez t1, desplegar_mode     # Si hay new_rx en UART B, ir a modo DESPLEGAR
 
-    # Verificar si se presiona un botón para activar modo DESPLEGAR
-    andi t2, t1, 0x01           # Asumiendo que el botón para DESPLEGAR es el bit 0
-    bnez t2, desplegar_mode     # Si el bit 0 está activo, ir a modo DESPLEGAR
-
-    # Verificar si hay datos en el UART para activar modo ALMACENAMIENTO
-    li t3, 0x02010              # Dirección del registro de control del UART
-    lw t4, 0(t3)                # Leer estado del UART
-    andi t4, t4, 0x00000002           # Verificar si hay datos listos para leer
-    bnez t4, almacenamiento_mode # Si hay datos, ir a modo ALMACENAMIENTO
+    # Verificar si hay datos en el UART A para activar modo ALMACENAMIENTO
+    li t3, 0x02010                      # Dirección del registro de control del UART A
+    lw t4, 0(t3)                        # Leer estado del UART
+    andi t4, t4, 0x00000002             # Verificar si hay datos listos para leer
+    bnez t4, almacenamiento_mode        # Si hay datos en UART A, ir a modo ALMACENAMIENTO
 
     # Permanecer en modo REPOSO si no hay eventos
     j reposo_mode
@@ -185,24 +183,64 @@ deny_image:
 # -----------------------------------------------------
 
 desplegar_mode:
-    # Recuperar contador de imágenes almacenadas
-    la t0, current_image_count  # Cargar la dirección de current_image_count
-    lw t5, 0(t0)
-    beqz t5, exit_desplegar_mode  # Salir si no hay imágenes
 
-    # Dirección inicial en RAM para la última imagen
-    # la t6, buffer               # Cargar la dirección del buffer
-    slli t5, t5, 14            # Multiplicar por 16200 para el offset de la imagen
-    add t6, t6, t5
+    li t0, 0x040000  # Dirección inicial RAM (primera imagen)
+    li t6, 64800     # Tamaño de la imagen en bytes (240 * 135 * 2)
+
+    li t1, 0x02020      # Dirección reg control UART B
+    sw zero, 0(t1)      # Apagar new_rx
 
 desplegar_loop:
+
     # Enviar cada byte de la imagen a través del UART
-    lb t2, 0(t6)                # Leer byte de la RAM
-    li t4, 0x02018              # Dirección del UART para datos
-    sb t2, 0(t4)                # Enviar byte a través del UART
-    addi t6, t6, 1              # Siguiente byte
-    addi t5, t5, -1             # Decrementar tamaño de la imagen
-    bnez t5, desplegar_loop     # Continuar hasta enviar toda la imagen
+    lb t2, 0(t0)                # Leer byte de la RAM
+    li t4, 0x02028              # Dirección del UART para datos
+    sb t2, 0(t4)                # Almacenar byte reg envío
+
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
+    #####################
+    li t1, 0x02020      # Dirección reg control UART B
+    li t3, 0x01
+    sw t3, 0(t1)        # Activar send
+    #####################
+
+
+    addi t6, t6, -1             # Siguiente byte
+    addi t0, t0, 1              # Decrementar tamaño de la imagen
+    li t5, 300
+
+
+    
+
+nops:
+    li t1, 0x02020              # Dirección del registro de control del UART
+    lw t2, 0(t1)                # Leer estado del UART
+
+    addi t5, t5, -1
+    bnez t5, nops
+
+
+    bnez t6, desplegar_loop     # Continuar hasta enviar toda la imagen
 
 exit_desplegar_mode:
     j reposo_mode               # Regresar al modo REPOSO
