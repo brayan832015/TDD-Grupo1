@@ -1,8 +1,8 @@
 module LCD(
     input logic clk,          
     input logic resetn,       // Reset activo en bajo
-    input logic ser_rx,       
-    output logic ser_tx,      
+    input logic rx,       
+    output logic tx,      
     output logic lcd_resetn,
     output logic lcd_clk,
     output logic lcd_cs,
@@ -18,7 +18,7 @@ logic uart_data_valid;
 uart_rx uart_inst (
     .clk(clk),
     .rst(~resetn),
-    .rx(ser_rx),
+    .rx(rx),
     .data_rx(uart_data),
     .WR2c(uart_data_ready)
 );
@@ -26,9 +26,6 @@ uart_rx uart_inst (
 // Variables internas
 localparam MAX_CMDS = 69;
 logic [8:0] init_cmd[MAX_CMDS:0];
-logic [15:0] P1;           // Color1 puede ser rojo, verde o blanco
-logic [15:0] P2;           // Color2 puede ser azul o blanco
-logic toggle_color;
 logic [15:0] pixel;
 logic use_red, use_green;      // Control para seleccionar rojo, verde o blanco
 logic lcd_cs_r, lcd_rs_r, lcd_reset_r;
@@ -126,6 +123,7 @@ localparam INIT_SNOOZE  = 4'b0011;
 localparam INIT_WORKING = 4'b0100;
 localparam INIT_DONE    = 4'b0101;
 
+/*
 // Proceso para cambiar colores basado en UART
 always_ff @(posedge clk or negedge resetn) begin
     if (~resetn) begin
@@ -148,7 +146,36 @@ always_ff @(posedge clk or negedge resetn) begin
         end
     end
 end
+*/
 
+// Señales para manejar el ensamblado del píxel
+logic rx_byte_low;      // Indica si estamos esperando la parte baja del pixel
+logic [15:0] pixel_buf; // Buffer temporal para ensamblar el píxel completo
+
+// Proceso de recepción de bytes vía UART
+always_ff @(posedge clk or negedge resetn) begin
+    if (~resetn) begin
+        rx_byte_low <= 1'b1;          // Inicia esperando la parte baja
+        pixel_buf <= 16'h0000;       // Limpia el buffer de píxel
+        uart_data_valid <= 1'b0;     // Señal de dato listo desactivada
+    end else if (uart_data_ready) begin
+        if (rx_byte_low) begin
+            // Primer byte recibido: parte baja del píxel
+            pixel_buf[7:0] <= uart_data;  // Guardar parte baja
+            rx_byte_low <= 1'b0;          // Ahora espera la parte alta
+        end else begin
+            // Segundo byte recibido: parte alta del píxel
+            pixel_buf[15:8] <= uart_data; // Guardar parte alta
+            pixel <= pixel_buf;           // Actualiza el píxel completo
+            rx_byte_low <= 1'b1;          // Vuelve a esperar la parte baja
+            uart_data_valid <= 1'b1;      // Señal de dato listo activada
+        end
+    end else begin
+        uart_data_valid <= 1'b0;         // Desactiva la señal de dato listo
+    end
+end
+
+/*
 // Control de colores
 always_comb begin
     if (!uart_data_valid) begin
@@ -186,6 +213,7 @@ end
 always_comb begin
     pixel = toggle_color ? P1 : P2;
 end
+*/
 
 // Inicializar y escribir LCD
 always_ff @(posedge clk or negedge resetn) begin
