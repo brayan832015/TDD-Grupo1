@@ -39,6 +39,7 @@ almacenamiento_mode:
 
     # Comenzar a recibir imagen desde la PC
     li t6, 64800                # Tamaño de la imagen en bytes (240 * 135 * 2)
+    #li t6, 5 
 
 almacenamiento_loop:
     # Leer cada byte del UART y almacenarlo en RAM
@@ -184,8 +185,58 @@ deny_image:
 
 desplegar_mode:
 
-    li t0, 0x040000  # Dirección inicial RAM (primera imagen)
+    # Leer valor del registro en memoria
+    li t3, 0x0202C        # Cargar dirección en t3
+    lb t1, 0(t3)         # Cargar byte en t1
+    
+    # Comparar con valores ASCII (1=0x31 hasta 8=0x38)
+    li t2, 0x31          # ASCII '1'
+    beq t1, t2, imagen1
+    li t2, 0x32          # ASCII '2' 
+    beq t1, t2, imagen2
+    li t2, 0x33          # ASCII '3'
+    beq t1, t2, imagen3
+    li t2, 0x34          # ASCII '4'
+    beq t1, t2, imagen4
+    li t2, 0x35          # ASCII '5'
+    beq t1, t2, imagen5
+    li t2, 0x36          # ASCII '6'
+    beq t1, t2, imagen6
+    li t2, 0x37          # ASCII '7'
+    beq t1, t2, imagen7
+    li t2, 0x38          # ASCII '8'
+    beq t1, t2, imagen8
+    j desplegar_mode                # Si no coincide, saltar al continuar_desplegaral
+
+imagen1:
+    li t0, 0x040000             # Cargar 1 en t0
+    j continuar_desplegar
+imagen2:
+    li t0, 0x0104800             # Cargar 2 en t0
+    j continuar_desplegar
+imagen3:
+    li t0, 0x169600             # Cargar 3 en t0
+    j continuar_desplegar
+imagen4:
+    li t0, 0x234400             # Cargar 4 en t0
+    j continuar_desplegar
+imagen5:
+    li t0, 0x299200             # Cargar 5 en t0
+    j continuar_desplegar
+imagen6:
+    li t0, 0x364000             # Cargar 6 en t0
+    j continuar_desplegar
+imagen7:
+    li t0, 0x428800             # Cargar 7 en t0
+    j continuar_desplegar
+imagen8:
+    li t0, 0x493600             # Cargar 8 en t0
+
+continuar_desplegar:
+    # Continuar con el resto del programa
+
     li t6, 64800     # Tamaño de la imagen en bytes (240 * 135 * 2)
+    #li t6, 5 
 
     li t1, 0x02020      # Dirección reg control UART B
     sw zero, 0(t1)      # Apagar new_rx

@@ -4,8 +4,8 @@ IO_PORT "leds[6]" DRIVE=8;
 IO_LOC  "leds[5]" 80;
 IO_PORT "leds[5]" DRIVE=8;
 
-IO_LOC  "leds4]" 81;
-IO_PORT "leds4]" DRIVE=8;
+IO_LOC  "leds[4]" 81;
+IO_PORT "leds[4]" DRIVE=8;
 
 IO_LOC  "leds[3]" 82;
 IO_PORT "leds[3]" DRIVE=8;
