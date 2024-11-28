@@ -13,12 +13,13 @@ module top_nexys(
     logic clk_10MHz, locked;
     logic [31:0] ProgAddress_o, ProgIn_i;
     logic [31:0] DataAddress_o, DataOut_o, DataIn_i;
-    logic we_o;
+    logic we_o, Enable_RAM;
     logic [31:0] data_from_switches_buttons;
     logic [31:0] data_from_uartA;
     logic [31:0] data_from_uartB;
     logic [31:0] data_from_RAM;
     logic [3:0] wstrb;
+    logic [16:0] AddressRAM;
 
 
 clk_wiz_0 PLL_clock (
@@ -27,7 +28,7 @@ clk_wiz_0 PLL_clock (
     .clk_10MHz(clk_10MHz)  // output clk 10 MHz
 );
 
-top_uart uart_a (
+top_uartA uart_a (
     .clk(clk_10MHz),
     .reset(reset || ~locked),
     .wr_i(we_o),            
@@ -38,7 +39,7 @@ top_uart uart_a (
     .tx(tx_A)               
 );
 
-top_uart uart_b (
+top_uartB uart_b (
     .clk(clk_10MHz),
     .reset(reset || ~locked),
     .wr_i(we_o),            
@@ -90,9 +91,9 @@ ROM ROM (
 
 RAM RAM (
   .clka(clk_10MHz),
-  .ena(DataAddress_o[18] && DataAddress_o[31:19] == 13'd0), 
+  .ena(Enable_RAM), 
   .wea(wstrb), 
-  .addra(DataAddress_o[17:2]),
+  .addra(AddressRAM),
   .dina(DataOut_o),
   .douta(data_from_RAM)
 );
@@ -100,6 +101,8 @@ RAM RAM (
 
 // Multiplexor para asignar correctamente DataIn_i
     always_comb begin
+        AddressRAM = 17'd0;
+        Enable_RAM = 1'b0;
         if (DataAddress_o == 32'h00002000) begin
             DataIn_i = data_from_switches_buttons;
         end 
@@ -111,6 +114,8 @@ RAM RAM (
         end 
         else if (DataAddress_o >= 32'h00040000) begin
             DataIn_i = data_from_RAM;
+            AddressRAM = DataAddress_o [22:2] - 17'h10000;
+            Enable_RAM = 1'b1;
         end
     end
 
