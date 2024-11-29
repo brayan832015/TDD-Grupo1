@@ -32,10 +32,10 @@ reposo_mode:
 # Modo ALMACENAMIENTO
 # -----------------------------------------------------
 almacenamiento_mode:
-    # Llamar a modo RETRANSMITER para verificar el comando
-    jal retransmiter_mode
+    # Llamar a modo RETRANSMITIR para verificar el comando
+    jal retransmitir_mode
 
-    beqz a0, exit_almacenamiento_mode  # Si RETRANSMITER falla, salir
+    beqz a0, exit_almacenamiento_mode  # Si RETRANSMITIR falla, salir
 
     # Comenzar a recibir imagen desde la PC
     li t6, 64800                # Tamaño de la imagen en bytes (240 * 135 * 2)
@@ -119,9 +119,9 @@ exit_almacenamiento_mode:
     j reposo_mode               # Regresar al modo REPOSO
 
 # -----------------------------------------------------
-# Modo RETRANSMITER (subrutina de almacenamiento)
+# Modo RETRANSMITIR (subrutina de almacenamiento)
 # -----------------------------------------------------
-retransmiter_mode:
+retransmitir_mode:
     li t0, 0x0201C              # Dirección del registro de datos para recibir
     li t1, 0xFFFFFFFF                 # Comando esperado para iniciar la transferencia de imagen
     # Leer comando desde UART
